@@ -5,6 +5,9 @@
 #include <renderer/gl/raii_storage.hpp>
 
 #include <cinttypes>
+#include <string>
+#include <unordered_map>
+
 #include <glad/glad.h>
 
 namespace renderer
@@ -33,57 +36,39 @@ namespace renderer::gl
             }
         };
 
-        struct shader_raii_wrap
+        struct stage_create_policy
         {
-            explicit shader_raii_wrap(GLuint handler)
-                : m_handler(handler)
+            static void create(uint32_t* handler, GLenum stage_name)
             {
+                *handler = glCreateShader(stage_name);
             }
-
-            shader_raii_wrap(const shader_raii_wrap&) = delete;
-            shader_raii_wrap& operator=(const shader_raii_wrap&) = delete;
-
-            shader_raii_wrap(shader_raii_wrap&& src) noexcept
-            {
-                *this = std::move(src);
-            }
-
-            shader_raii_wrap& operator=(shader_raii_wrap&& src) noexcept
-            {
-                if (this != &src) {
-                    m_handler = src.m_handler;
-                    src.m_handler = 0;
-                }
-
-                return *this;
-            }
-
-
-            ~shader_raii_wrap()
-            {
-                glDeleteShader(m_handler);
-            }
-
-            operator GLuint()
-            {
-                return m_handler;
-            }
-
-        private:
-            GLuint m_handler;
         };
+
+        struct stage_destroy_policy
+        {
+            static void destroy(uint32_t* handler)
+            {
+                return glDeleteShader(*handler);
+            }
+        };
+
+        using stage_handler = raii_storage<stage_create_policy, stage_destroy_policy>;
+        using shader_handler = raii_storage<shader_create_policy, shader_destroy_policy>;
     } // namespace detail
 
 
     class shader
     {
+        friend class renderer;
+
     public:
-        shader(const ::renderer::shader_descriptor&);
+        explicit shader(const ::renderer::shader_descriptor&);
         void bind();
         void unbind();
 
     private:
-        detail::shader_raii_wrap compile_shader(const ::renderer::shader_stage&);
-        raii_storage<detail::shader_create_policy, detail::shader_destroy_policy> m_handler;
+        detail::stage_handler compile_shader(const ::renderer::shader_stage&);
+        detail::shader_handler m_handler;
+        std::unordered_map<std::string, uint32_t> m_samplers;
     };
 } // namespace renderer::gl

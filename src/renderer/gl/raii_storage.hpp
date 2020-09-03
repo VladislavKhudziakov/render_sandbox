@@ -12,9 +12,10 @@ namespace renderer::gl
     class raii_storage
     {
     public:
-        raii_storage()
+        template<typename ...Args>
+        explicit raii_storage(Args&&... args)
         {
-            CreatePolicy::create(&m_handler);
+            CreatePolicy::create(&m_handler, std::forward<Args>(args)...);
         }
 
         ~raii_storage()
@@ -49,6 +50,6 @@ namespace renderer::gl
         }
 
     protected:
-        uint32_t m_handler;
+        uint32_t m_handler{0};
     };
 } // namespace renderer::gl

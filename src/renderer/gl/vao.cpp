@@ -5,11 +5,6 @@
 #include <renderer/renderer.hpp>
 #include <renderer/gl/traits.hpp>
 #include <renderer/gl/buffer.hpp>
-#include <renderer/gl/bind_guard.hpp>
-
-#define COMBINE1(X,Y) X##Y
-#define COMBINE(X,Y) COMBINE1(X,Y)
-#define CHECK_ERR() auto COMBINE(err, __LINE__) = glGetError(); assert( COMBINE(err, __LINE__) == GL_NO_ERROR)
 
 
 renderer::gl::vao::vao(const ::renderer::mesh_layout_descriptor& vld)
