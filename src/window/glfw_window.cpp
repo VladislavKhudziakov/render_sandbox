@@ -6,10 +6,11 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include <renderer/gl/renderer.hpp>
 
-renderer::glfw_window::glfw_window(const std::string& name, misc::size size, std::function<void(float)> updater)
-: window(size)
-, m_updater(std::move(updater))
+
+renderer::glfw_window::glfw_window(const std::string& name, misc::size size)
+    : window(size, std::make_unique<gl::renderer>())
 {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -21,15 +22,13 @@ renderer::glfw_window::glfw_window(const std::string& name, misc::size size, std
 
     m_window = glfwCreateWindow(m_size.width, m_size.height, name.c_str(), nullptr, nullptr);
 
-    if (m_window == nullptr)
-    {
+    if (m_window == nullptr) {
         destroy_window();
         throw std::runtime_error("Failed to create window");
     }
 
     glfwMakeContextCurrent(m_window);
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    {
+    if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
         destroy_window();
         throw std::runtime_error("Failed to initialize GLAD");
     }
@@ -47,8 +46,7 @@ void renderer::glfw_window::update()
     int32_t w, h;
     glfwGetFramebufferSize(m_window, &w, &h);
     glViewport(0, 0, w, h);
-
-    m_updater(glfwGetTime());
+    m_renderer->update(glfwGetTime());
     glfwSwapBuffers(m_window);
     glfwPollEvents();
 }

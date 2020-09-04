@@ -1,6 +1,5 @@
 
 #include <window/glfw_window.hpp>
-#include <renderer/gl/renderer.hpp>
 #include <renderer/renderer.hpp>
 #include <misc/images_loader.hpp>
 
@@ -40,68 +39,51 @@ void main()
 }
 )";
 
-constexpr float arr[] {
-    -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
-    0.5f, -0.5f, 0.0f, 0.5f, 1.0f,
-    0.0f,  0.5f, 0.0f, 1.0f, 0.0f
-};
+constexpr float arr[]{
+    -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.5f, -0.5f, 0.0f, 0.5f, 1.0f, 0.0f, 0.5f, 0.0f, 1.0f, 0.0f};
 
-int main() {
-    renderer::gl::renderer r;
+int main()
+{
     misc::images_loader loader;
 
     renderer::mesh_handler mesh;
     renderer::shader_handler shader;
 
-    renderer::glfw_window window("my window", {800, 600}, [&r, &mesh, &shader](float time) {
+    renderer::glfw_window window("my window", {800, 600});
 
-        r.encode_draw_command({
-            .type = renderer::draw_command_type::draw,
-            .mesh = mesh,
-            .shader = shader
-        });
+    auto* r = window.get_renderer();
 
-        r.update(time);
-    });
-
-
-    renderer::mesh_layout_descriptor md {
+    renderer::mesh_layout_descriptor md{
         .vertex_attributes = {
-            {renderer::type::f32, 3},
-            {renderer::type::f32, 2}
-        },
-        .vertex_data = { reinterpret_cast<const uint8_t*>(arr),  reinterpret_cast<const uint8_t*>(arr) + sizeof(arr)}
-    };
+            {renderer::data_type::f32, 3},
+            {renderer::data_type::f32, 2}},
+        .vertex_data = {reinterpret_cast<const uint8_t*>(arr), reinterpret_cast<const uint8_t*>(arr) + sizeof(arr)}};
 
-    auto image = r.create_texture(loader.load_2d_texture("/Users/vladislavkhudiakov/Downloads/test_image.png"));
+    auto image = r->create_texture(loader.load_2d_texture("/Users/vladislavkhudiakov/Downloads/test_image.png"));
 
-    renderer::parameters_list_descriptor parameters_list
-    {
-        .parameters = {renderer::parameter_type::vec4}
-    };
+    renderer::parameters_list_descriptor parameters_list{
+        .parameters = {renderer::parameter_type::vec4}};
 
-    auto params_list = r.create_parameters_list(parameters_list);
+    auto params_list = r->create_parameters_list(parameters_list);
 
-    renderer::shader_descriptor sd {
+    renderer::shader_descriptor sd{
         .stages = {
             {renderer::shader_stage_name::vertex, vss},
-            {renderer::shader_stage_name::fragment, fss}
-        },
-        .samplers = {
-            {"s_tex", image}
-        },
-        .parameters = {
-            {"instance_data", params_list}
-        }
+            {renderer::shader_stage_name::fragment, fss}},
+        .samplers = {{"s_tex", image}},
+        .parameters = {{"instance_data", params_list}},
     };
 
-    mesh = r.create_mesh(md);
-    shader = r.create_shader(sd);
+    sd.state.color_write = true;
+
+    mesh = r->create_mesh(md);
+    shader = r->create_shader(sd);
 
     float color[] = {1, 0, 1, 1};
-    r.set_parameter_data(params_list, 0, color);
+    r->set_parameter_data(params_list, 0, color);
 
     while (!window.closed()) {
+        r->encode_draw_command({.type = renderer::draw_command_type::draw, .mesh = mesh, .shader = shader});
         window.update();
     }
 

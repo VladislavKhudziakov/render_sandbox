@@ -11,6 +11,7 @@
 
 renderer::gl::shader::shader(const ::renderer::shader_descriptor& descriptor)
     : m_samplers(descriptor.samplers)
+    , m_state(descriptor.state)
 {
     for (const auto& stage : descriptor.stages) {
         glAttachShader(m_handler, compile_shader(stage));

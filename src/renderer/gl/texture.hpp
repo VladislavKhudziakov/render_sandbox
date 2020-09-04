@@ -3,15 +3,11 @@
 #pragma once
 
 #include <renderer/gl/raii_storage.hpp>
+#include <renderer/renderer.hpp>
 
 #include <glad/glad.h>
 
 #include <cinttypes>
-
-namespace renderer
-{
-    struct texture_descriptor;
-}
 
 namespace renderer::gl
 {
@@ -39,11 +35,14 @@ namespace renderer::gl
     class texture
     {
         friend class renderer;
+        friend class render_pass;
 
     public:
         explicit texture(const texture_descriptor&);
         void bind();
         void unbind();
+
+        void resize(const ::renderer::texture_size&);
 
     private:
         void load_2d_data(const texture_descriptor&);
@@ -51,6 +50,8 @@ namespace renderer::gl
         void load_3d_data(const texture_descriptor&);
 
         detail::texture_handler m_handler;
-        GLenum m_type;
+        GLenum m_gl_type;
+        ::renderer::texture_type m_type;
+        std::tuple<GLenum, GLenum, GLenum> m_storage_data;
     };
 } // namespace renderer::gl

@@ -2,7 +2,6 @@
 
 #include "images_loader.hpp"
 
-
 #define STB_IMAGE_IMPLEMENTATION
 
 #include <stb_image.h>
@@ -34,12 +33,12 @@ renderer::texture_descriptor misc::images_loader::load_2d_texture(const std::str
     }
 
     res.type = renderer::texture_type::d2;
-    res.data_type = renderer::type::u8;
+    res.pixels_data_type = renderer::data_type::u8;
     res.size.width = w;
     res.size.height = h;
 
-    res.pixels_data.resize(w * h * c);
-    std::memcpy(res.pixels_data.data(), image.get(), w * h * c);
+    res.pixels.resize(w * h * c);
+    std::memcpy(res.pixels.data(), image.get(), w * h * c);
 
     return res;
 }

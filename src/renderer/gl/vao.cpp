@@ -32,24 +32,23 @@ renderer::gl::vao::vao(const ::renderer::mesh_layout_descriptor& vld)
 
     for (int i = 0; i < vertex_attribs_size; ++i) {
         const auto& attr = vld.vertex_attributes[i];
-        auto gl_type = traits::get_gl_type(attr.type);
+        auto gl_type = traits::get_gl_type(attr.data_type);
         stride += gl_type.type_size * attr.elements_count;
     }
 
     for (int i = 0; i < vertex_attribs_size; ++i) {
         const auto& attr = vld.vertex_attributes[i];
-        auto gl_type = traits::get_gl_type(attr.type);
+        auto gl_type = traits::get_gl_type(attr.data_type);
         glEnableVertexAttribArray(i);
-        glVertexAttribPointer(i, attr.elements_count, gl_type.gl_format, GL_FALSE, stride, (void*)offset);
+        glVertexAttribPointer(i, attr.elements_count, gl_type.gl_format, GL_FALSE, stride, (void*) offset);
         offset += gl_type.type_size * attr.elements_count;
     }
 
-    auto gl_type = traits::get_gl_type(vld.index_type);
+    auto gl_type = traits::get_gl_type(vld.indices_data_type);
 
     m_vertices_count = vld.vertex_data.size() / stride;
     m_indices_count = vld.index_data.size() / gl_type.type_size;
     m_indices_format = gl_type.gl_format;
-    assert(glGetError() == GL_NO_ERROR);
 }
 
 

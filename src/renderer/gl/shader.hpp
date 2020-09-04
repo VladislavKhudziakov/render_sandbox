@@ -3,18 +3,13 @@
 #pragma once
 
 #include <renderer/gl/raii_storage.hpp>
+#include <renderer/renderer.hpp>
 
 #include <cinttypes>
 #include <string>
 #include <unordered_map>
 
 #include <glad/glad.h>
-
-namespace renderer
-{
-    struct shader_descriptor;
-    struct shader_stage;
-} // namespace renderer
 
 namespace renderer::gl
 {
@@ -70,5 +65,6 @@ namespace renderer::gl
         detail::stage_handler compile_shader(const ::renderer::shader_stage&);
         detail::shader_handler m_handler;
         std::unordered_map<std::string, uint32_t> m_samplers;
+        ::renderer::shader_state m_state;
     };
 } // namespace renderer::gl
