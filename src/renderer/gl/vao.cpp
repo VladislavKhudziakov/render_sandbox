@@ -9,20 +9,19 @@
 
 renderer::gl::vao::vao(const ::renderer::mesh_layout_descriptor& vld)
 {
-    vertex_buffer vbo;
-    element_buffer ebo;
+    vertex_buffer vbo(vld.vertex_data.size());
+    std::optional<element_buffer> ebo;
 
     bind_guard vbo_bind(vbo);
-    bind_guard ebo_bind(ebo);
-
-    ebo_bind.unbind();
+    std::optional<bind_guard<element_buffer>> ebo_bind;
 
     if (!vld.index_data.empty()) {
-        ebo_bind.bind();
-        ebo.load_data(reinterpret_cast<const void*>(vld.index_data.data()), vld.index_data.size());
+        ebo.emplace(vld.index_data.size());
+        ebo_bind.emplace(ebo.value());
+        ebo->load_data(reinterpret_cast<const void*>(vld.index_data.data()));
     }
 
-    vbo.load_data(reinterpret_cast<const void*>(vld.vertex_data.data()), vld.vertex_data.size());
+    vbo.load_data(reinterpret_cast<const void*>(vld.vertex_data.data()));
 
     bind_guard this_bind(*this);
 
@@ -50,6 +49,7 @@ renderer::gl::vao::vao(const ::renderer::mesh_layout_descriptor& vld)
     m_vertices_count = vld.vertex_data.size() / stride;
     m_indices_count = vld.index_data.size() / gl_type.type_size;
     m_indices_format = gl_type.gl_format;
+    assert(glGetError() == GL_NO_ERROR);
 }
 
 

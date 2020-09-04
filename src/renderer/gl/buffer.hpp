@@ -28,10 +28,22 @@ namespace renderer::gl
         };
     } // namespace detail
 
-    template<GLenum BufferType>
+    template<GLenum BufferType, bool static_usage = true>
     class buffer
     {
+        friend class renderer;
+
     public:
+        explicit buffer(size_t size)
+            : m_storage_size(size)
+        {
+            if (!static_usage) {
+                bind_guard bind(*this);
+                glBufferData( GL_UNIFORM_BUFFER, size, nullptr, GL_DYNAMIC_DRAW );
+            }
+        }
+
+
         void bind()
         {
             glBindBuffer(BufferType, m_handler);
@@ -42,16 +54,21 @@ namespace renderer::gl
             glBindBuffer(BufferType, 0);
         }
 
-        void load_data(const void* data, size_t data_size, bool static_usage = true)
+        void load_data(const void* data)
         {
-            glBufferData(BufferType, data_size, data, static_usage ? GL_STATIC_DRAW : GL_DYNAMIC_DRAW);
+            if constexpr (!static_usage) {
+                glBufferSubData(BufferType, 0, (GLsizeiptr)m_storage_size, data);
+            } else {
+                glBufferData(BufferType, m_storage_size, data, GL_STATIC_DRAW);
+            }
         }
 
     private:
         raii_storage<detail::buffer_create_policy, detail::buffer_destroy_policy> m_handler;
+        size_t m_storage_size;
     };
 
     using vertex_buffer = buffer<GL_ARRAY_BUFFER>;
     using element_buffer = buffer<GL_ELEMENT_ARRAY_BUFFER>;
-    using uniform_buffer = buffer<GL_UNIFORM_BUFFER>;
+    using uniform_buffer = buffer<GL_UNIFORM_BUFFER, false>;
 } // namespace renderer::gl

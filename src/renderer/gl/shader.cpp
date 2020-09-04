@@ -36,12 +36,16 @@ renderer::gl::shader::shader(const ::renderer::shader_descriptor& descriptor)
         std::cout << log_buffer << std::endl;
     }
 
-    uint32_t texture_slot = 0;
+    GLint texture_slot = 0;
 
     for (const auto& [sampler_name, sampler_tex] : m_samplers) {
-        auto loc = glGetUniformLocation(m_handler, sampler_name.c_str());
+        assert(glGetError() == GL_NO_ERROR);
+        GLint loc = glGetUniformLocation(m_handler, sampler_name.c_str());
+        if (loc < 0) {
+            continue;
+        }
         ASSERT(loc >= 0);
-        glUniform1i(loc, texture_slot++);
+        glUniform1i(loc, 0);
     }
 }
 
@@ -71,6 +75,8 @@ renderer::gl::detail::stage_handler renderer::gl::shader::compile_shader(const :
     glGetShaderiv(handler, GL_COMPILE_STATUS, &compile_status);
     glGetShaderiv(handler, GL_INFO_LOG_LENGTH, &log_len);
 
+    assert(glGetError() == GL_NO_ERROR);
+
     if (log_len > 0) {
         std::string log_buffer;
         log_buffer.resize(log_len);
@@ -83,6 +89,8 @@ renderer::gl::detail::stage_handler renderer::gl::shader::compile_shader(const :
 
         std::cout << log_buffer << std::endl;
     }
+
+    assert(glGetError() == GL_NO_ERROR);
 
     return handler;
 }

@@ -104,14 +104,29 @@ namespace renderer::gl::traits
             case type::u8:
                 switch (descriptor.format) {
                     case texture_format::r:
-                        return {GL_UNSIGNED_SHORT, GL_R8, GL_R};
+                        return {GL_UNSIGNED_BYTE, GL_R8, GL_R};
                     case texture_format::rg:
-                        return {GL_UNSIGNED_SHORT, GL_RG8, GL_RG};
+                        return {GL_UNSIGNED_BYTE, GL_RG8, GL_RG};
                     case texture_format::rgba:
-                        return {GL_UNSIGNED_SHORT, GL_RGBA8, GL_RGBA};
+                        return {GL_UNSIGNED_BYTE, GL_RGBA8, GL_RGBA};
                 }
             default:
                 ASSERT(false && "invalid texture data type.");
+        }
+    }
+
+
+    inline size_t get_parameter_size(::renderer::parameter_type type)
+    {
+        switch(type) {
+            case parameter_type::vec4:
+                return sizeof(float) * 4;
+            case parameter_type::mat2x4:
+                return 2 * (sizeof(float) * 4);
+            case parameter_type::mat3x4:
+                return 3 * (sizeof(float) * 4);
+            case parameter_type::mat4:
+                return 4 * (sizeof(float) * 4);
         }
     }
 
