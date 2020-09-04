@@ -10,9 +10,11 @@
 renderer::gl::texture::texture(const ::renderer::texture_descriptor& desc)
     : m_type(traits::get_gl_texture_type(desc))
 {
-    bind_guard bind(*this);
+    if (desc.pixels_data.empty()) {
+        return;
+    }
 
-    CHECK_ERR();
+    bind_guard bind(*this);
 
     switch (desc.type) {
         case texture_type::d2:
@@ -30,8 +32,6 @@ renderer::gl::texture::texture(const ::renderer::texture_descriptor& desc)
         glGenerateMipmap(m_type);
     }
 
-    CHECK_ERR();
-
     switch (desc.filtration) {
         case texture_filtration::point:
             glTexParameteri(m_type, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -47,8 +47,6 @@ renderer::gl::texture::texture(const ::renderer::texture_descriptor& desc)
             glTexParameteri(m_type, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
             break;
     }
-
-    CHECK_ERR();
 }
 
 

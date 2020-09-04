@@ -84,18 +84,7 @@ void renderer::gl::renderer::set_shader_sampler(
     auto& params_list = m_params_lists.emplace_back(descriptor);
 
     const auto binding_index = m_params_lists.size() - 1;
-
     glBindBufferBase(GL_UNIFORM_BUFFER, binding_index, params_list.m_gpu_storage->m_handler);
-
-    for (auto& shader : m_shaders) {
-        auto uniform_index = glGetUniformBlockIndex(shader.m_handler, descriptor.name.c_str());
-
-        if (uniform_index < 0) {
-            continue;
-        }
-
-        glUniformBlockBinding(shader.m_handler, uniform_index, binding_index);
-    }
 
     return binding_index;
 }

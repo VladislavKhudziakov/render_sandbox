@@ -6,7 +6,6 @@
 
 
 renderer::gl::parameters_list::parameters_list(const ::renderer::parameters_list_descriptor& descriptor)
-    : m_name(descriptor.name)
 {
     m_parameters.reserve(descriptor.parameters.size());
 
@@ -38,10 +37,4 @@ void renderer::gl::parameters_list::load_data_to_gpu()
         bind_guard bind(m_gpu_storage.value());
         m_gpu_storage->load_data(m_parameters_data.data());
     }
-}
-
-
-const std::string& renderer::gl::parameters_list::get_name()
-{
-    return m_name;
 }

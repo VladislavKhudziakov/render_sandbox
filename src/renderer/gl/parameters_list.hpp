@@ -16,7 +16,6 @@ namespace renderer::gl
         explicit parameters_list(const ::renderer::parameters_list_descriptor&);
         void set_parameter_data(uint32_t parameter_index, void*);
         void load_data_to_gpu();
-        const std::string& get_name();
 
     private:
         struct parameter
@@ -28,7 +27,5 @@ namespace renderer::gl
         std::vector<parameter> m_parameters;
         std::vector<uint8_t> m_parameters_data;
         std::optional<uniform_buffer> m_gpu_storage;
-
-        std::string m_name;
     };
 } // namespace renderer::gl

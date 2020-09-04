@@ -75,6 +75,7 @@ namespace renderer
     {
         std::vector<shader_stage> stages;
         std::unordered_map<std::string, texture_handler> samplers;
+        std::unordered_map<std::string, parameters_list_handler> parameters;
     };
 
     struct texture_size
@@ -95,7 +96,7 @@ namespace renderer
 
     struct parameters_list_descriptor
     {
-        std::string name;
+//        std::string name;
         std::vector<parameter_type> parameters;
     };
 
