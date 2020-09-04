@@ -19,6 +19,11 @@ renderer::gl::parameters_list::parameters_list(const ::renderer::parameters_list
         storage_size += param_size;
     }
 
+    GLint alignment;
+    glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &alignment);
+
+    storage_size = std::max((GLint(storage_size) + alignment - 1) / alignment, 1) * alignment;
+
     m_parameters_data.resize(storage_size);
     m_gpu_storage.emplace(storage_size);
 }
@@ -27,7 +32,7 @@ renderer::gl::parameters_list::parameters_list(const ::renderer::parameters_list
 void renderer::gl::parameters_list::set_parameter_data(uint32_t parameter_index, void* data)
 {
     const auto& param = m_parameters[parameter_index];
-    std::memcpy(m_parameters_data.data(), data, param.size);
+    std::memcpy(m_parameters_data.data() + param.offset, data, param.size);
 }
 
 

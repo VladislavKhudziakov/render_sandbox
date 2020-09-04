@@ -12,6 +12,7 @@ layout (location = 1) in vec2 attr_uv;
 layout (std140) uniform instance_data
 {
     vec4 color;
+    mat4 test_matrix;
 };
 
 out vec2 v_uv;
@@ -39,8 +40,13 @@ void main()
 }
 )";
 
+// clang-format off
 constexpr float arr[]{
-    -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.5f, -0.5f, 0.0f, 0.5f, 1.0f, 0.0f, 0.5f, 0.0f, 1.0f, 0.0f};
+    -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
+    0.5f, -0.5f, 0.0f, 0.5f, 1.0f,
+    0.0f, 0.5f, 0.0f, 1.0f, 0.0f
+};
+// clang-format on
 
 int main()
 {
@@ -62,7 +68,7 @@ int main()
     auto image = r->create_texture(loader.load_2d_texture("/Users/vladislavkhudiakov/Downloads/test_image.png"));
 
     renderer::parameters_list_descriptor parameters_list{
-        .parameters = {renderer::parameter_type::vec4}};
+        .parameters = {renderer::parameter_type::vec4, renderer::parameter_type::mat4}};
 
     auto params_list = r->create_parameters_list(parameters_list);
 
@@ -74,15 +80,41 @@ int main()
         .parameters = {{"instance_data", params_list}},
     };
 
-    sd.state.color_write = true;
+    renderer::texture_descriptor attachment_tex_descriptor{
+        .pixels_data_type = renderer::data_type::u8,
+        .format = renderer::texture_format::rgba,
+        .type = renderer::texture_type::attachment,
+        .size = {
+            1, 1, 0, 1}};
+
+    auto attachment_tex = r->create_texture(attachment_tex_descriptor);
+
+    renderer::pass_descriptor pass_descriptor{
+        .width = 1600,
+        .height = 1200,
+        .attachments = {{.type = renderer::attachment_type::color, .render_texture = attachment_tex}}};
+
+    auto pass = r->create_pass(pass_descriptor);
 
     mesh = r->create_mesh(md);
     shader = r->create_shader(sd);
 
-    float color[] = {1, 0, 1, 1};
+    float color[] = {1, 1, 0, 1};
+
+    // clang-format off
+    float matrix[] = {
+        1, 0, 0, 1,
+        0, 1, 0, 1,
+        0, 0, 1, 1,
+        1, 0, 1, 1,
+    };
+    // clang-format on
+
     r->set_parameter_data(params_list, 0, color);
+    r->set_parameter_data(params_list, 1, matrix);
 
     while (!window.closed()) {
+        r->encode_draw_command({.type = renderer::draw_command_type::pass, .pass = pass});
         r->encode_draw_command({.type = renderer::draw_command_type::draw, .mesh = mesh, .shader = shader});
         window.update();
     }

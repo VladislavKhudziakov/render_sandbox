@@ -56,6 +56,8 @@ namespace renderer::gl::traits
                 return GL_TEXTURE_3D;
             case texture_type::cube:
                 return descriptor.size.length == 1 ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_CUBE_MAP_ARRAY;
+            case texture_type::attachment:
+                return GL_TEXTURE_2D;
             default:
                 ASSERT(false && "invalid texture type.");
         }
