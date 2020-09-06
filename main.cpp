@@ -2,8 +2,9 @@
 #include <window/glfw_window.hpp>
 #include <renderer/renderer.hpp>
 #include <misc/images_loader.hpp>
-
-#include <glad/glad.h>
+#include <math/vector.hpp>
+#include <math/matrix.hpp>
+#include <iostream>
 
 constexpr auto vss = R"(#version 410 core
 layout (location = 0) in vec3 attr_pos;
@@ -112,6 +113,30 @@ int main()
 
     r->set_parameter_data(params_list, 0, color);
     r->set_parameter_data(params_list, 1, matrix);
+
+    math::vec4 v1 {1, 2, 3, 4};
+    math::vec4 v2 {1, 2, 3, 4};
+
+    math::mat4 m {
+        1.f, 0.f, 0.f, 0.f,
+        0.f, 1.f, 0.f, 0.f,
+        0.f, 0.f, 1.f, 0.f,
+        0.f, 0.f, 0.f, 1.f
+    };
+
+    math::mat4 m2 {
+        1.f, 4.f, 0.f, 0.f,
+        0.f, 2.f, 0.f, 0.f,
+        0.f, 0.f, 3.f, 0.f,
+        0.f, 0.f, 0.f, 4.f
+    };
+
+
+    auto m3 = m * m2;
+    auto m4 = m2 * m;
+
+    auto res = m * v1;
+    auto res2 = v1 * m;
 
     while (!window.closed()) {
         r->encode_draw_command({.type = renderer::draw_command_type::pass, .pass = pass});
