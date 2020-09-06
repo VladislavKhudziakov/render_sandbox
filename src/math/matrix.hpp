@@ -34,6 +34,16 @@ namespace math
         {
         };
 
+        template<typename T>
+        struct is_matrix : std::false_type
+        {
+        };
+
+        template<size_t Rows, size_t Cols, typename DataType>
+        struct is_matrix<mat<Rows, Cols, DataType>> : public std::true_type
+        {
+        };
+
         template<typename X, typename Y>
         struct add_result
         {
@@ -91,7 +101,7 @@ namespace math
             struct element
             {
                 template<size_t Rows, size_t Cols, typename DataType>
-                inline static auto get(mat<Rows, Cols, DataType>& m)
+                inline static auto get(const mat<Rows, Cols, DataType>& m)
                 {
                     return m[index][Col];
                 }
@@ -106,7 +116,7 @@ namespace math
             struct element
             {
                 template<size_t Rows, size_t Cols, typename DataType>
-                inline static auto get(mat<Rows, Cols, DataType>& m)
+                inline static auto get(const mat<Rows, Cols, DataType>& m)
                 {
                     return m[Row][Index];
                 }
@@ -141,8 +151,8 @@ namespace math
                     typename YDataType>
                 inline static void call(
                     mat<RowsX, ColsY, ResType>& res,
-                    mat<RowsX, ColsX, XDataType>& x,
-                    mat<RowsY, ColsY, YDataType>& y)
+                    const mat<RowsX, ColsX, XDataType>& x,
+                    const mat<RowsY, ColsY, YDataType>& y)
                 {
                     res[RowIndex][ColIndex] = dot_product<RowsY - 1>::template calculate<
                         matrix_row<RowIndex>::template element,
@@ -165,8 +175,8 @@ namespace math
                 typename YDataType>
             inline static void call(
                 mat<RowsX, ColsY, ResType>& res,
-                mat<RowsX, ColsX, XDataType>& x,
-                mat<RowsY, ColsY, YDataType>& y)
+                const mat<RowsX, ColsX, XDataType>& x,
+                const mat<RowsY, ColsY, YDataType>& y)
             {
                 static_assert(ColIndex < ColsY);
                 for_i<RowsX - 1>::template call<calc_col<ColIndex>::template elem>(res, x, y);
@@ -251,8 +261,8 @@ namespace math
     public:
         mat()
         {
-            for (size_t row; row < Rows; row++) {
-                for (size_t col; col < Cols; col++) {
+            for (size_t row = 0; row < Rows; row++) {
+                for (size_t col = 0; col < Cols; col++) {
                     m_elements[row][col] = row == col ? 1 : 0;
                 }
             }
@@ -266,7 +276,8 @@ namespace math
                     auto index = col + row * Rows;
 
                     if (index >= init_values.size()) {
-                        return;
+                        m_elements[row][col] = row == col ? 1 : 0;
+                        continue;
                     }
 
                     m_elements[row][col] = *(init_values.begin() + index);
@@ -280,13 +291,25 @@ namespace math
             return m_elements[index];
         }
 
+        const auto& operator[](size_t index) const
+        {
+            assert(index < Rows);
+            return m_elements[index];
+        }
+
+
+        friend DataType* value_ptr(mat& m)
+        {
+            return m.m_elements[0];
+        }
+
     private:
         DataType m_elements[Rows][Cols];
     };
 
 
     template<size_t RowsX, size_t ColsX, typename DataTypeX, size_t RowsY, size_t ColsY, typename DataTypeY>
-    auto operator*(mat<RowsX, ColsX, DataTypeX>& x, mat<RowsY, ColsY, DataTypeY>& y)
+    auto operator*(const mat<RowsX, ColsX, DataTypeX>& x, const mat<RowsY, ColsY, DataTypeY>& y)
     {
         static_assert(ColsX == RowsY);
         mat<RowsX, ColsY, detail::mul_result_t<DataTypeX, DataTypeY>> res;
@@ -381,6 +404,123 @@ namespace math
     using mat4 = mat<4, 4, float>;
     using mat3 = mat<3, 3, float>;
     using mat2 = mat<2, 2, float>;
+
+
+    mat4 rotation_z(float angle)
+    {
+        float s = sin(angle);
+        float c = cos(angle);
+
+        mat4 mat{};
+
+        mat[0][0] = c;
+        mat[0][1] = s;
+        mat[1][0] = -s;
+        mat[1][1] = c;
+
+        return mat;
+    }
+
+    mat4 rotation_x(float angle)
+    {
+        float s = sin(angle);
+        float c = cos(angle);
+
+        mat4 mat{};
+
+        mat[1][1] = c;
+        mat[1][2] = s;
+        mat[2][1] = -s;
+        mat[2][2] = c;
+
+        return mat;
+    }
+
+    mat4 rotation_y(float angle)
+    {
+        float s = sin(angle);
+        float c = cos(angle);
+
+        mat4 mat{};
+
+        mat[0][0] = c;
+        mat[0][2] = -s;
+        mat[2][0] = s;
+        mat[0][2] = s;
+
+
+        return mat;
+    }
+
+    mat4 scale(float x, float y, float z)
+    {
+        mat4 mat;
+        mat[0][0] = x;
+        mat[1][1] = y;
+        mat[2][2] = z;
+        return mat;
+    }
+
+    mat4 translation(float x, float y, float z)
+    {
+        mat4 mat;
+        mat[3][0] = x;
+        mat[3][1] = y;
+        mat[3][2] = z;
+        return mat;
+    }
+
+
+    mat4 look_at(vec3 eye, vec3 target, vec3 up_dir)
+    {
+        mat4 mat;
+
+        vec3 fwd = normalize(eye - target);
+        auto left = normalize(cross(up_dir, fwd));
+        auto up = normalize(cross(fwd, left));
+
+        mat[0][0] = left.x;
+        mat[0][1] = left.y;
+        mat[0][2] = left.z;
+
+        mat[1][0] = up.x;
+        mat[1][1] = up.y;
+        mat[1][2] = up.z;
+
+        mat[2][0] = fwd.x;
+        mat[2][1] = fwd.y;
+        mat[2][2] = fwd.z;
+
+        mat[3][0] = -left.x * eye.x - left.y * eye.y - left.z * eye.z;
+        mat[3][1] = -up.x * eye.x - up.y * eye.y - up.z * eye.z;
+        mat[3][2] = -fwd.x * eye.x - fwd.y * eye.y - fwd.z * eye.z;
+
+        return mat;
+    }
+
+
+    mat4 perspective(float fov, float near, float far, float width, float height)
+    {
+        float h = tanf(fov * 0.5f);
+        float w = h * width / height;
+        float range_inv = 1.f / (near - far);
+
+        mat4 mat;
+
+        mat[0][0] = w;
+        mat[1][1] = h;
+        mat[2][2] = (near + far) * range_inv;
+        mat[2][3] = -1;
+        mat[3][2] = near * far * 2 * range_inv;
+
+        return mat;
+    }
+
+    float radians(float degs)
+    {
+        return degs * float(M_PI) / 180.f;
+    }
+
 
     static_assert(sizeof(mat4) == sizeof(float[4 * 4]));
     static_assert(sizeof(mat3) == sizeof(float[3 * 3]));

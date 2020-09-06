@@ -13,7 +13,7 @@ layout (location = 1) in vec2 attr_uv;
 layout (std140) uniform instance_data
 {
     vec4 color;
-    mat4 test_matrix;
+    mat4 mvp;
 };
 
 out vec2 v_uv;
@@ -21,7 +21,7 @@ out vec4 v_color;
 
 void main()
 {
-    gl_Position = vec4(attr_pos.xy, 0., 1.);
+    gl_Position = mvp * vec4(attr_pos, 1.);
     v_uv = attr_uv;
     v_color = color;
 }
@@ -43,9 +43,9 @@ void main()
 
 // clang-format off
 constexpr float arr[]{
-    -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
-    0.5f, -0.5f, 0.0f, 0.5f, 1.0f,
-    0.0f, 0.5f, 0.0f, 1.0f, 0.0f
+    -0.5f, -0.5f, -4.f, 0.0f, 0.0f,
+    0.5f, -0.5f, -4.f, 0.5f, 1.0f,
+    0.0f, 0.5f, -4.f, 1.0f, 0.0f
 };
 // clang-format on
 
@@ -79,7 +79,7 @@ int main()
             {renderer::shader_stage_name::fragment, fss}},
         .samplers = {{"s_tex", image}},
         .parameters = {{"instance_data", params_list}},
-    };
+        .state = {.depth_test = renderer::depth_test_mode::less_eq}};
 
     renderer::texture_descriptor attachment_tex_descriptor{
         .pixels_data_type = renderer::data_type::u8,
@@ -102,46 +102,28 @@ int main()
 
     float color[] = {1, 1, 0, 1};
 
-    // clang-format off
-    float matrix[] = {
-        1, 0, 0, 1,
-        0, 1, 0, 1,
-        0, 0, 1, 1,
-        1, 0, 1, 1,
-    };
-    // clang-format on
-
     r->set_parameter_data(params_list, 0, color);
-    r->set_parameter_data(params_list, 1, matrix);
 
-    math::vec4 v1 {1, 2, 3, 4};
-    math::vec4 v2 {1, 2, 3, 4};
+    math::vec4 v1{1, 2, 3, 4};
+    math::vec4 v2{1, 2, 3, 4};
 
-    math::mat4 m {
-        1.f, 0.f, 0.f, 0.f,
-        0.f, 1.f, 0.f, 0.f,
-        0.f, 0.f, 1.f, 0.f,
-        0.f, 0.f, 0.f, 1.f
-    };
-
-    math::mat4 m2 {
-        1.f, 4.f, 0.f, 0.f,
-        0.f, 2.f, 0.f, 0.f,
-        0.f, 0.f, 3.f, 0.f,
-        0.f, 0.f, 0.f, 4.f
-    };
-
-
-    auto m3 = m * m2;
-    auto m4 = m2 * m;
-
-    auto res = m * v1;
-    auto res2 = v1 * m;
-
-    auto m5 = m + 2;
-    auto m6 = m + m5;
+    float angle = 0;
 
     while (!window.closed()) {
+        angle += 0.1;
+        angle = angle >= 360 ? 0 : angle;
+
+        auto p = math::perspective(M_PI * 0.5, 0.001, 100, 1600, 1200);
+
+        auto rotation = math::rotation_z(angle);
+        auto translation = math::translation(0, 0, -angle);
+
+        auto view = math::look_at({0, 0, 10}, {0, 0, 0}, {0, 1, 0});
+
+        auto mvp = rotation * translation * view * p;
+
+        r->set_parameter_data(params_list, 1, &mvp[0][0]);
+
         r->encode_draw_command({.type = renderer::draw_command_type::pass, .pass = pass});
         r->encode_draw_command({.type = renderer::draw_command_type::draw, .mesh = mesh, .shader = shader});
         window.update();
