@@ -138,6 +138,9 @@ int main()
     auto res = m * v1;
     auto res2 = v1 * m;
 
+    auto m5 = m + 2;
+    auto m6 = m + m5;
+
     while (!window.closed()) {
         r->encode_draw_command({.type = renderer::draw_command_type::pass, .pass = pass});
         r->encode_draw_command({.type = renderer::draw_command_type::draw, .mesh = mesh, .shader = shader});

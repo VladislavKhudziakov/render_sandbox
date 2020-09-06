@@ -20,13 +20,19 @@ namespace math
     namespace detail
     {
         template<typename T>
-        struct is_matrix_or_vector : std::false_type {};
+        struct is_matrix_or_vector : std::false_type
+        {
+        };
 
         template<size_t Rows, size_t Cols, typename DataType>
-        struct is_matrix_or_vector<mat<Rows, Cols, DataType>> : public std::true_type {};
+        struct is_matrix_or_vector<mat<Rows, Cols, DataType>> : public std::true_type
+        {
+        };
 
         template<size_t Rows, typename DataType>
-        struct is_matrix_or_vector<vec<Rows, DataType>> : public std::true_type {};
+        struct is_matrix_or_vector<vec<Rows, DataType>> : public std::true_type
+        {
+        };
 
         template<typename X, typename Y>
         struct add_result
@@ -103,6 +109,17 @@ namespace math
                 inline static auto get(mat<Rows, Cols, DataType>& m)
                 {
                     return m[Row][Index];
+                }
+
+                template<
+                    size_t Rows,
+                    size_t Cols,
+                    typename DataType,
+                    typename Functional,
+                    typename... Args>
+                inline static void call(mat<Rows, Cols, DataType>& m, Functional f, Args&&... args)
+                {
+                    f(Row, Index, std::forward<Args>(args)...);
                 }
             };
         };
@@ -183,6 +200,48 @@ namespace math
                         vector_element>(m, v);
             }
         };
+
+
+        template<size_t Row>
+        struct for_each
+        {
+            template<
+                size_t Rows,
+                size_t Cols,
+                typename DataType,
+                typename Functional,
+                typename... Args>
+            inline static void call(mat<Rows, Cols, DataType>& m, Functional f, Args&&... args)
+            {
+            }
+        };
+
+
+        template<size_t Row>
+        struct for_each_row
+        {
+            template<
+                size_t Rows,
+                size_t Cols,
+                typename DataType,
+                typename Functional,
+                typename... Args>
+            inline static void call(mat<Rows, Cols, DataType>& m, Functional f, Args&&... args)
+            {
+                for_i<Cols - 1>::template call<matrix_row<Row>::template element>(m, std::move(f), std::forward<Args>(args)...);
+            }
+        };
+
+        template<
+            size_t Rows,
+            size_t Cols,
+            typename DataType,
+            typename Functional,
+            typename... Args>
+        inline void for_each_matrix_element(mat<Rows, Cols, DataType>& m, Functional f, Args&&... args)
+        {
+            for_i<Rows - 1>::template call<for_each_row>(m, std::move(f), std::forward<Args>(args)...);
+        }
     } // namespace detail
 
 
@@ -260,46 +319,62 @@ namespace math
         typename MatDataType,
         typename ScalarType,
         std::enable_if<!detail::is_matrix_or_vector<ScalarType>::value>>
-    mat<MatCols, MatRows, detail::mul_result_t<MatDataType, ScalarType>> operator*(
-        mat<MatCols, MatRows, MatDataType>&,
+    auto operator*(
+        mat<MatCols, MatRows, MatDataType> m,
         ScalarType&& scalar)
     {
-        return mat<MatCols, MatRows, detail::mul_result_t<MatDataType, ScalarType>>();
+        detail::for_each_matrix_element(
+            m,
+            [](size_t row, size_t col, auto& m, auto&& scalar) { m[row][col] *= scalar; },
+            m,
+            scalar);
+
+        return m;
     }
 
 
     template<size_t MatCols, size_t MatRows, typename MatDataType, typename ScalarType>
-    mat<MatCols, MatRows, detail::div_result_t<MatDataType, ScalarType>> operator/(mat<MatCols, MatRows, MatDataType>&&, ScalarType&& scalar)
+    auto operator/(mat<MatCols, MatRows, MatDataType> m, ScalarType scalar)
     {
-        return mat<MatCols, MatRows, detail::div_result_t<MatDataType, ScalarType>>();
+        detail::for_each_matrix_element(
+            m, [](size_t row, size_t col, auto& m, auto scalar) { m[row][col] /= scalar; }, m, scalar);
+        return m;
     }
 
 
     template<size_t MatCols, size_t MatRows, typename DataTypeX, typename DataTypeY>
-    mat<MatCols, MatRows, detail::add_result_t<DataTypeX, DataTypeY>> operator+(mat<MatCols, MatRows, DataTypeX>&, mat<MatCols, MatRows, DataTypeY>&)
+    auto operator+(mat<MatCols, MatRows, DataTypeX> x, mat<MatCols, MatRows, DataTypeY>& y)
     {
-        return mat<MatCols, MatRows, detail::add_result_t<DataTypeX, DataTypeY>>();
+        detail::for_each_matrix_element(
+            x, [](size_t row, size_t col, auto& x, auto& y) { x[row][col] += y[row][col]; }, x, y);
+        return x;
     }
 
 
     template<size_t MatCols, size_t MatRows, typename DataTypeX, typename DataTypeY>
-    mat<MatCols, MatRows, detail::sub_result_t<DataTypeX, DataTypeY>> operator-(mat<MatCols, MatRows, DataTypeX>&, mat<MatCols, MatRows, DataTypeY>&)
+    auto operator-(mat<MatCols, MatRows, DataTypeX> x, mat<MatCols, MatRows, DataTypeY>& y)
     {
-        return mat<MatCols, MatRows, detail::sub_result_t<DataTypeX, DataTypeY>>();
+        detail::for_each_matrix_element(
+            x, [](size_t row, size_t col, auto& x, auto& y) { return x[row][col] -= y[row][col]; }, x, y);
+        return x;
     }
 
 
     template<size_t MatCols, size_t MatRows, typename MatDataType, typename ScalarType>
-    mat<MatCols, MatRows, detail::add_result_t<MatDataType, ScalarType>> operator+(mat<MatCols, MatRows, MatDataType>&&, ScalarType&& scalar)
+    auto operator+(mat<MatCols, MatRows, MatDataType> m, ScalarType scalar)
     {
-        return mat<MatCols, MatRows, detail::add_result_t<MatDataType, ScalarType>>();
+        detail::for_each_matrix_element(
+            m, [](size_t row, size_t col, auto& m, auto scalar) { return m[row][col] += scalar; }, m, scalar);
+        return m;
     }
 
 
     template<size_t MatCols, size_t MatRows, typename MatDataType, typename ScalarType>
-    mat<MatCols, MatRows, detail::sub_result_t<MatDataType, ScalarType>> operator-(mat<MatCols, MatRows, MatDataType>&&, ScalarType&& scalar)
+    auto operator-(mat<MatCols, MatRows, MatDataType> m, ScalarType scalar)
     {
-        return mat<MatCols, MatRows, detail::sub_result_t<MatDataType, ScalarType>>();
+        detail::for_each_matrix_element(
+            m, [](size_t row, size_t col, auto& m, auto scalar) { return m[row][col] -= scalar; }, m, scalar);
+        return m;
     }
 
 
