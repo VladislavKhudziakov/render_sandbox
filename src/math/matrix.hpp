@@ -406,7 +406,7 @@ namespace math
     using mat2 = mat<2, 2, float>;
 
 
-    mat4 rotation_z(float angle)
+    inline mat4 rotation_z(float angle)
     {
         float s = sin(angle);
         float c = cos(angle);
@@ -421,7 +421,7 @@ namespace math
         return mat;
     }
 
-    mat4 rotation_x(float angle)
+    inline mat4 rotation_x(float angle)
     {
         float s = sin(angle);
         float c = cos(angle);
@@ -436,87 +436,95 @@ namespace math
         return mat;
     }
 
-    mat4 rotation_y(float angle)
+    inline mat4 rotation_y(float angle)
     {
         float s = sin(angle);
         float c = cos(angle);
 
-        mat4 mat{};
+        mat4 mat{
+            c,  0, -s,  0,
+            0,  1,  0,  0,
+            s,  0,  c,  0,
+            0,  0,  0,  1
+        };
 
-        mat[0][0] = c;
-        mat[0][2] = -s;
-        mat[2][0] = s;
-        mat[0][2] = s;
+//        mat[0][0] = c;
+//        mat[0][2] = -s;
+//        mat[2][0] = s;
+//        mat[0][2] = c;
 
 
         return mat;
     }
 
-    mat4 scale(float x, float y, float z)
+    inline mat4 scale(vec3 s)
     {
         mat4 mat;
-        mat[0][0] = x;
-        mat[1][1] = y;
-        mat[2][2] = z;
+        mat[0][0] = s.x;
+        mat[1][1] = s.y;
+        mat[2][2] = s.z;
         return mat;
     }
 
-    mat4 translation(float x, float y, float z)
+    inline mat4 translation(vec3 t)
     {
         mat4 mat;
-        mat[3][0] = x;
-        mat[3][1] = y;
-        mat[3][2] = z;
+        mat[3][0] = t.x;
+        mat[3][1] = t.y;
+        mat[3][2] = t.z;
         return mat;
     }
 
 
-    mat4 look_at(vec3 eye, vec3 target, vec3 up_dir)
+    inline mat4 look_at(vec3 eye, vec3 target, vec3 up_dir)
     {
         mat4 mat;
 
-        vec3 fwd = normalize(eye - target);
-        auto left = normalize(cross(up_dir, fwd));
-        auto up = normalize(cross(fwd, left));
+        eye.x = -eye.x;
+        eye.y = -eye.y;
 
-        mat[0][0] = left.x;
-        mat[0][1] = left.y;
-        mat[0][2] = left.z;
+        vec3 fwd = normalize(target - eye);
+        auto side = normalize(cross(fwd, up_dir));
+        auto up = normalize(cross(side, fwd));
+
+        mat[0][0] = side.x;
+        mat[0][1] = side.y;
+        mat[0][2] = side.z;
 
         mat[1][0] = up.x;
         mat[1][1] = up.y;
         mat[1][2] = up.z;
 
-        mat[2][0] = fwd.x;
-        mat[2][1] = fwd.y;
-        mat[2][2] = fwd.z;
+        mat[2][0] = -fwd.x;
+        mat[2][1] = -fwd.y;
+        mat[2][2] = -fwd.z;
 
-        mat[3][0] = -left.x * eye.x - left.y * eye.y - left.z * eye.z;
-        mat[3][1] = -up.x * eye.x - up.y * eye.y - up.z * eye.z;
-        mat[3][2] = -fwd.x * eye.x - fwd.y * eye.y - fwd.z * eye.z;
+        mat[3][0] = -dot(side, eye);
+        mat[3][1] = -dot(up, eye);
+        mat[3][2] = dot(fwd, eye);
 
         return mat;
     }
 
 
-    mat4 perspective(float fov, float near, float far, float width, float height)
+    inline mat4 perspective(float fov, float near, float far, float width, float height)
     {
-        float h = tanf(fov * 0.5f);
-        float w = h * width / height;
-        float range_inv = 1.f / (near - far);
+        float h = cosf(fov * 0.5f) / sinf(fov * 0.5f);
+        float w = h * (height / width);
 
         mat4 mat;
 
         mat[0][0] = w;
         mat[1][1] = h;
-        mat[2][2] = (near + far) * range_inv;
+        mat[2][2] = -(far + near) / (far - near);
         mat[2][3] = -1;
-        mat[3][2] = near * far * 2 * range_inv;
+        mat[3][2] = -(near * far * 2) / (far - near);
+        mat[3][3] = 0;
 
         return mat;
     }
 
-    float radians(float degs)
+    inline float radians(float degs)
     {
         return degs * float(M_PI) / 180.f;
     }

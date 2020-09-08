@@ -2122,7 +2122,7 @@ stbi_inline static int stbi__jpeg_get_bit(stbi__jpeg *j)
 }
 
 // given a value that's at position X in the zigzag stream,
-// where does it appear in the 8x8 matrix coded as row-major?
+// where does it appear in the 8x8 matrix coded as cube_row-major?
 static const stbi_uc stbi__jpeg_dezigzag[64+15] =
 {
     0,  1,  8, 16,  9,  2,  3, 10,
@@ -2547,7 +2547,7 @@ static void stbi__idct_simd(stbi_uc *out, int out_stride, short data[64])
    __m128i rot3_0 = dct_const(stbi__f2f(-0.390180644f) + stbi__f2f( 2.053119869f), stbi__f2f(-0.390180644f));
    __m128i rot3_1 = dct_const(stbi__f2f(-0.390180644f), stbi__f2f(-0.390180644f) + stbi__f2f( 1.501321110f));
 
-   // rounding biases in column/row passes, see stbi__idct_block for explanation.
+   // rounding biases in column/cube_row passes, see stbi__idct_block for explanation.
    __m128i bias_0 = _mm_set1_epi32(512);
    __m128i bias_1 = _mm_set1_epi32(65536 + (128<<17));
 
@@ -2584,7 +2584,7 @@ static void stbi__idct_simd(stbi_uc *out, int out_stride, short data[64])
       dct_interleave16(row6, row7);
    }
 
-   // row pass
+   // cube_row pass
    dct_pass(bias_1, 17);
 
    {
@@ -2769,7 +2769,7 @@ static void stbi__idct_simd(stbi_uc *out, int out_stride, short data[64])
 #undef dct_trn64
    }
 
-   // row pass
+   // cube_row pass
    // vrshrn_n_s32 only supports shifts up to 16, we need
    // 17. so do a non-rounding shift of 16 first then follow
    // up with a rounding shift by 1.
@@ -3438,7 +3438,7 @@ static stbi_uc *stbi__resample_row_hv_2_simd(stbi_uc *out, stbi_uc *in_near, stb
 
    t1 = 3*in_near[0] + in_far[0];
    // process groups of 8 pixels for as long as we can.
-   // note we can't handle the last pixel in a row in this loop
+   // note we can't handle the last pixel in a cube_row in this loop
    // because we need to handle the filter boundary conditions.
    for (; i < ((w-1) & ~7); i += 8) {
 #if defined(STBI_SSE2)
@@ -3451,12 +3451,12 @@ static stbi_uc *stbi__resample_row_hv_2_simd(stbi_uc *out, stbi_uc *in_near, stb
       __m128i nearw = _mm_unpacklo_epi8(nearb, zero);
       __m128i diff  = _mm_sub_epi16(farw, nearw);
       __m128i nears = _mm_slli_epi16(nearw, 2);
-      __m128i curr  = _mm_add_epi16(nears, diff); // current row
+      __m128i curr  = _mm_add_epi16(nears, diff); // current cube_row
 
       // horizontal filter works the same based on shifted vers of current
-      // row. "prev" is current row shifted right by 1 pixel; we need to
+      // cube_row. "prev" is current cube_row shifted right by 1 pixel; we need to
       // insert the previous pixel value (from t1).
-      // "next" is current row shifted left by 1 pixel, with first pixel
+      // "next" is current cube_row shifted left by 1 pixel, with first pixel
       // of next block of 8 pixels added in.
       __m128i prv0 = _mm_slli_si128(curr, 2);
       __m128i nxt0 = _mm_srli_si128(curr, 2);
@@ -3491,12 +3491,12 @@ static stbi_uc *stbi__resample_row_hv_2_simd(stbi_uc *out, stbi_uc *in_near, stb
       uint8x8_t nearb = vld1_u8(in_near + i);
       int16x8_t diff  = vreinterpretq_s16_u16(vsubl_u8(farb, nearb));
       int16x8_t nears = vreinterpretq_s16_u16(vshll_n_u8(nearb, 2));
-      int16x8_t curr  = vaddq_s16(nears, diff); // current row
+      int16x8_t curr  = vaddq_s16(nears, diff); // current cube_row
 
       // horizontal filter works the same based on shifted vers of current
-      // row. "prev" is current row shifted right by 1 pixel; we need to
+      // cube_row. "prev" is current cube_row shifted right by 1 pixel; we need to
       // insert the previous pixel value (from t1).
-      // "next" is current row shifted left by 1 pixel, with first pixel
+      // "next" is current cube_row shifted left by 1 pixel, with first pixel
       // of next block of 8 pixels added in.
       int16x8_t prv0 = vextq_s16(curr, curr, 7);
       int16x8_t nxt0 = vextq_s16(curr, curr, 1);
@@ -3751,7 +3751,7 @@ typedef struct
    int hs,vs;   // expansion factor in each axis
    int w_lores; // horizontal pixels pre-expansion
    int ystep;   // how far through vertical expansion we are
-   int ypos;    // which pre-expansion row we're on
+   int ypos;    // which pre-expansion cube_row we're on
 } stbi__resample;
 
 // fast 0..255 * 0..255 => 0..255 rounded multiplication
@@ -4508,7 +4508,7 @@ enum {
    STBI__F_up=2,
    STBI__F_avg=3,
    STBI__F_paeth=4,
-   // synthetic filters used for first scanline to avoid needing a dummy row of 0s
+   // synthetic filters used for first scanline to avoid needing a dummy cube_row of 0s
    STBI__F_avg_first,
    STBI__F_paeth_first
 };
@@ -4578,7 +4578,7 @@ static int stbi__create_png_image_raw(stbi__png *a, stbi_uc *raw, stbi__uint32 r
       }
       prior = cur - stride; // bugfix: need to compute this after 'cur +=' computation above
 
-      // if first row, use special filter that doesn't sample previous row
+      // if first cube_row, use special filter that doesn't sample previous cube_row
       if (j == 0) filter = first_row_filter[filter];
 
       // handle first byte explicitly
@@ -4652,7 +4652,7 @@ static int stbi__create_png_image_raw(stbi__png *a, stbi_uc *raw, stbi__uint32 r
          // the loop above sets the high byte of the pixels' alpha, but for
          // 16 bit png files we also need the low byte set. we'll do that here.
          if (depth == 16) {
-            cur = a->out + stride*j; // start at the beginning of the row again
+            cur = a->out + stride*j; // start at the beginning of the cube_row again
             for (i=0; i < x; ++i,cur+=output_bytes) {
                cur[filter_bytes+1] = 255;
             }
@@ -5056,7 +5056,7 @@ static int stbi__parse_png_file(stbi__png *z, int scan, int req_comp)
             if (z->idata == NULL) return stbi__err("no IDAT","Corrupt PNG");
             // initial guess for decoded data size to avoid unnecessary reallocs
             bpl = (s->img_x * z->depth + 7) / 8; // bytes per line, per component
-            raw_len = bpl * s->img_y * s->img_n /* pixels */ + s->img_y /* filter mode per row */;
+            raw_len = bpl * s->img_y * s->img_n /* pixels */ + s->img_y /* filter mode per cube_row */;
             z->expanded = (stbi_uc *) stbi_zlib_decode_malloc_guesssize_headerflag((char *) z->idata, ioff, raw_len, (int *) &raw_len, !is_iphone);
             if (z->expanded == NULL) return 0; // zlib should set error
             STBI_FREE(z->idata); z->idata = NULL;
@@ -6038,7 +6038,7 @@ static void *stbi__psd_load(stbi__context *s, int *x, int *y, int *comp, int req
       //     Else if n is 128, noop.
       // Endloop
 
-      // The RLE-compressed data is preceded by a 2-byte data count for each row in the data,
+      // The RLE-compressed data is preceded by a 2-byte data count for each cube_row in the data,
       // which we're going to just skip.
       stbi__skip(s, h * channelCount * 2 );
 

@@ -16,6 +16,8 @@ namespace renderer
     using parameters_list_handler = uint32_t;
     using pass_handler = uint32_t;
 
+    constexpr static auto null = uint32_t(-1);
+
     enum class data_type
     {
         f32,

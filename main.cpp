@@ -4,6 +4,9 @@
 #include <misc/images_loader.hpp>
 #include <math/vector.hpp>
 #include <math/matrix.hpp>
+#include <cube.hpp>
+#include <rubicks_cube.hpp>
+
 #include <iostream>
 
 constexpr auto vss = R"(#version 410 core
@@ -81,51 +84,49 @@ int main()
         .parameters = {{"instance_data", params_list}},
         .state = {.depth_test = renderer::depth_test_mode::less_eq}};
 
-    renderer::texture_descriptor attachment_tex_descriptor{
+    renderer::texture_descriptor color_attachment_tex_descriptor{
         .pixels_data_type = renderer::data_type::u8,
         .format = renderer::texture_format::rgba,
         .type = renderer::texture_type::attachment,
         .size = {
             1, 1, 0, 1}};
 
-    auto attachment_tex = r->create_texture(attachment_tex_descriptor);
+    renderer::texture_descriptor depth_attachment_tex_descriptor{
+        .pixels_data_type = renderer::data_type::d24,
+        .format = renderer::texture_format::rgba,
+        .type = renderer::texture_type::attachment,
+        .size = {
+            1, 1, 0, 1}};
+
+    auto color_attachment_tex = r->create_texture(color_attachment_tex_descriptor);
+    auto depth_attachment_tex = r->create_texture(depth_attachment_tex_descriptor);
 
     renderer::pass_descriptor pass_descriptor{
         .width = 1600,
         .height = 1200,
-        .attachments = {{.type = renderer::attachment_type::color, .render_texture = attachment_tex}}};
+        .attachments = {
+            {.type = renderer::attachment_type::color, .render_texture = color_attachment_tex},
+            {.type = renderer::attachment_type::depth, .render_texture = depth_attachment_tex},
+        }};
 
     auto pass = r->create_pass(pass_descriptor);
 
-    mesh = r->create_mesh(md);
-    shader = r->create_shader(sd);
 
-    float color[] = {1, 1, 0, 1};
+    rubicks_cube::rubicks_cube cube(r);
 
-    r->set_parameter_data(params_list, 0, color);
-
-    math::vec4 v1{1, 2, 3, 4};
-    math::vec4 v2{1, 2, 3, 4};
-
-    float angle = 0;
-
+    float v = 0;
     while (!window.closed()) {
-        angle += 0.1;
-        angle = angle >= 360 ? 0 : angle;
-
+        v += 0.01;
         auto p = math::perspective(M_PI * 0.5, 0.001, 100, 1600, 1200);
 
-        auto rotation = math::rotation_z(angle);
-        auto translation = math::translation(0, 0, -angle);
+        auto view = math::look_at({-1, 5, 15}, {0, 0, 0}, {0, 1, 0});
 
-        auto view = math::look_at({0, 0, 10}, {0, 0, 0}, {0, 1, 0});
-
-        auto mvp = rotation * translation * view * p;
-
-        r->set_parameter_data(params_list, 1, &mvp[0][0]);
+        auto mvp = view * p;
+        cube.rotation.z = v;
+        cube.parent_transform = mvp;
 
         r->encode_draw_command({.type = renderer::draw_command_type::pass, .pass = pass});
-        r->encode_draw_command({.type = renderer::draw_command_type::draw, .mesh = mesh, .shader = shader});
+        cube.draw();
         window.update();
     }
 

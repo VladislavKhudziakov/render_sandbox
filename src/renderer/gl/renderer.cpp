@@ -123,24 +123,40 @@ void renderer::gl::renderer::set_parameter_data(::renderer::parameters_list_hand
 
 void renderer::gl::renderer::destroy_mesh(::renderer::mesh_handler handler)
 {
+    if (handler == ::renderer::null) {
+        return;
+    }
+
     m_vaos.erase(m_vaos.begin() + handler);
 }
 
 
 void renderer::gl::renderer::destroy_shader(::renderer::shader_handler handler)
 {
+    if (handler == ::renderer::null) {
+        return;
+    }
+
     m_shaders.erase(m_shaders.begin() + handler);
 }
 
 
 void renderer::gl::renderer::destroy_texture(::renderer::texture_handler handler)
 {
+    if (handler == ::renderer::null) {
+        return;
+    }
+
     m_textures.erase(m_textures.begin() + handler);
 }
 
 
 void renderer::gl::renderer::destroy_parameters_list(::renderer::parameters_list_handler handler)
 {
+    if (handler == ::renderer::null) {
+        return;
+    }
+
     m_params_lists.erase(m_params_lists.begin() + handler);
 }
 
@@ -221,6 +237,10 @@ renderer::pass_handler renderer::gl::renderer::create_pass(const ::renderer::pas
 
 void renderer::gl::renderer::destroy_pass(::renderer::pass_handler handler)
 {
+    if (handler == ::renderer::null) {
+        return;
+    }
+
     auto it = m_passes.begin() + handler;
     m_passes.erase(it);
 }
