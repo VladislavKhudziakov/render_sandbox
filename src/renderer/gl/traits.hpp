@@ -64,6 +64,18 @@ namespace renderer::gl::traits
     }
 
 
+    inline GLenum get_gl_fmt(::renderer::texture_format fmt) {
+        switch (fmt) {
+            case texture_format::r:
+                return GL_R;
+            case texture_format::rg:
+                return GL_RG;
+            case texture_format::rgba:
+                return GL_RGBA;
+        }
+    }
+
+
     inline std::tuple<GLenum, GLenum, GLenum> get_texture_formats(const ::renderer::texture_descriptor& descriptor)
     {
         switch (descriptor.pixels_data_type) {

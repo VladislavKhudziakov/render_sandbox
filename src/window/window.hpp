@@ -9,6 +9,43 @@
 
 namespace renderer
 {
+    struct mouse_position_event
+    {
+        double x; double y;
+    };
+
+    struct mouse_click_event
+    {
+        enum class button_type
+        {
+            left, right, middle
+        };
+
+        enum class action_type
+        {
+            press, release
+        };
+
+        button_type button;
+        action_type action;
+    };
+
+    struct resize_event
+    {
+        int width, height;
+    };
+
+    struct scroll_event
+    {
+        double x_offset, y_offset;
+    };
+
+    using mouse_pos_event_handler = std::function<void(mouse_position_event)>;
+    using mouse_click_event_handler = std::function<void(mouse_click_event)>;
+    using resize_handler = std::function<void(resize_event)>;
+    using scroll_handler = std::function<void(scroll_event)>;
+
+
     class window
     {
     public:
@@ -19,6 +56,12 @@ namespace renderer
 
         virtual void close() = 0;
         virtual bool closed() = 0;
+
+        virtual void register_mouse_position_handler(mouse_pos_event_handler) = 0;
+        virtual void register_mouse_click_handler(mouse_click_event_handler) = 0;
+        virtual void register_mouse_scroll_callback(scroll_handler handler) = 0;
+        virtual void register_resize_handler(resize_handler handler) = 0;
+
 
         misc::size get_size();
         ::renderer::renderer* get_renderer();

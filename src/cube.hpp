@@ -6,14 +6,25 @@
 #include <renderer/renderer.hpp>
 #include <math/matrix.hpp>
 
-namespace rubicks_cube
+namespace rubiks_cube
 {
+    struct color_data
+    {
+        float pos_x[3];
+        float neg_x[3];
+        float pos_y[3];
+        float neg_y[3];
+        float pos_z[3];
+        float neg_z[3];
+    };
+
     class cube
     {
     public:
         constexpr static auto default_side = 2.0f;
 
         explicit cube(renderer::renderer* renderer);
+        explicit cube(renderer::renderer* renderer, const color_data&);
         cube(const cube&) = delete;
         cube& operator=(const cube&) = delete;
         cube(cube&&) noexcept;

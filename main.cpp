@@ -2,87 +2,62 @@
 #include <window/glfw_window.hpp>
 #include <renderer/renderer.hpp>
 #include <misc/images_loader.hpp>
-#include <math/vector.hpp>
-#include <math/matrix.hpp>
-#include <cube.hpp>
-#include <rubicks_cube.hpp>
 
-#include <iostream>
+#include <camera.hpp>
+#include <rubiks_cube.hpp>
 
-constexpr auto vss = R"(#version 410 core
-layout (location = 0) in vec3 attr_pos;
-layout (location = 1) in vec2 attr_uv;
-
-layout (std140) uniform instance_data
-{
-    vec4 color;
-    mat4 mvp;
-};
-
-out vec2 v_uv;
-out vec4 v_color;
-
-void main()
-{
-    gl_Position = mvp * vec4(attr_pos, 1.);
-    v_uv = attr_uv;
-    v_color = color;
-}
-)";
-
-constexpr auto fss = R"(#version 410 core
-layout (location = 0) out vec4 frag_color;
-
-in vec2 v_uv;
-in vec4 v_color;
-
-uniform sampler2D s_tex;
-
-void main()
-{
-    frag_color = texture(s_tex, v_uv) * v_color;
-}
-)";
-
-// clang-format off
-constexpr float arr[]{
-    -0.5f, -0.5f, -4.f, 0.0f, 0.0f,
-    0.5f, -0.5f, -4.f, 0.5f, 1.0f,
-    0.0f, 0.5f, -4.f, 1.0f, 0.0f
-};
-// clang-format on
+renderer::camera camera{};
+bool mouse_clicked = false;
 
 int main()
 {
-    misc::images_loader loader;
-
     renderer::mesh_handler mesh;
     renderer::shader_handler shader;
 
     renderer::glfw_window window("my window", {800, 600});
+    camera.width = 800;
+    camera.height = 600;
+
+    window.register_mouse_click_handler([](::renderer::mouse_click_event e) {
+        if (e.action == ::renderer::mouse_click_event::action_type::press &&
+            e.button == ::renderer::mouse_click_event::button_type::left) {
+            mouse_clicked = true;
+        }
+
+
+        if (e.action == ::renderer::mouse_click_event::action_type::release &&
+            e.button == ::renderer::mouse_click_event::button_type::left) {
+            mouse_clicked = false;
+        }
+    });
 
     auto* r = window.get_renderer();
+    rubiks_cube::rubiks_cube cube(r);
 
-    renderer::mesh_layout_descriptor md{
-        .vertex_attributes = {
-            {renderer::data_type::f32, 3},
-            {renderer::data_type::f32, 2}},
-        .vertex_data = {reinterpret_cast<const uint8_t*>(arr), reinterpret_cast<const uint8_t*>(arr) + sizeof(arr)}};
+    window.register_mouse_position_handler([&cube](::renderer::mouse_position_event e) {
+        static float last_x;
+        static float last_y;
 
-    auto image = r->create_texture(loader.load_2d_texture("/Users/vladislavkhudiakov/Downloads/test_image.png"));
+        if (mouse_clicked) {
+            auto x_offset = e.x - last_x;
+            auto y_offset = e.y - last_y;
+            cube.rotation.x += y_offset * 0.01;
+            cube.rotation.y += x_offset * 0.01;
+        }
 
-    renderer::parameters_list_descriptor parameters_list{
-        .parameters = {renderer::parameter_type::vec4, renderer::parameter_type::mat4}};
+        last_x = e.x;
+        last_y = e.y;
+    });
 
-    auto params_list = r->create_parameters_list(parameters_list);
+    window.register_resize_handler([](::renderer::resize_event e) {
+        camera.width = e.width;
+        camera.height = e.height;
+    });
 
-    renderer::shader_descriptor sd{
-        .stages = {
-            {renderer::shader_stage_name::vertex, vss},
-            {renderer::shader_stage_name::fragment, fss}},
-        .samplers = {{"s_tex", image}},
-        .parameters = {{"instance_data", params_list}},
-        .state = {.depth_test = renderer::depth_test_mode::less_eq}};
+    window.register_mouse_scroll_callback([](::renderer::scroll_event e) {
+        camera.position.z += -e.y_offset;
+        camera.target_position.z += -e.y_offset;
+    });
 
     renderer::texture_descriptor color_attachment_tex_descriptor{
         .pixels_data_type = renderer::data_type::u8,
@@ -112,22 +87,27 @@ int main()
     auto pass = r->create_pass(pass_descriptor);
 
 
-    rubicks_cube::rubicks_cube cube(r);
+    camera.position = {-1, 5, 15};
+    camera.target_position = {0, 0, 0};
 
     float v = 0;
     while (!window.closed()) {
-        v += 0.01;
-        auto p = math::perspective(M_PI * 0.5, 0.001, 100, 1600, 1200);
+        camera.update();
 
-        auto view = math::look_at({-1, 5, 15}, {0, 0, 0}, {0, 1, 0});
-
-        auto mvp = view * p;
         cube.rotation.z = v;
-        cube.parent_transform = mvp;
+        cube.parent_transform = camera.get_transformation();
 
         r->encode_draw_command({.type = renderer::draw_command_type::pass, .pass = pass});
+        cube.update();
         cube.draw();
         window.update();
+
+        if (mouse_clicked) {
+//            uint8_t pixel[4];
+//            auto pos_y = window.get_size().height - y;
+//            window.get_pixel_color(pixel, x, pos_y, ::renderer::texture_format::rgba, ::renderer::data_type::u8);
+//            std::cout << "R: " << float(pixel[0]) / 255.f << " G: " << float(pixel[1]) / 255.f << " B: " << float(pixel[2]) / 255.f << " A: " << float(pixel[3]) / 255.f << std::endl;
+        }
     }
 
     return 0;
