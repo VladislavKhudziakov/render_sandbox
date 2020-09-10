@@ -9,6 +9,8 @@
 renderer::camera camera{};
 bool mouse_clicked = false;
 
+::renderer::mouse_position_event pos;
+
 int main()
 {
     renderer::mesh_handler mesh;
@@ -18,7 +20,10 @@ int main()
     camera.width = 800;
     camera.height = 600;
 
-    window.register_mouse_click_handler([](::renderer::mouse_click_event e) {
+    auto* r = window.get_renderer();
+    rubiks_cube::rubiks_cube cube(r);
+
+    window.register_mouse_click_handler([&cube](::renderer::mouse_click_event e) {
         if (e.action == ::renderer::mouse_click_event::action_type::press &&
             e.button == ::renderer::mouse_click_event::button_type::left) {
             mouse_clicked = true;
@@ -28,11 +33,11 @@ int main()
         if (e.action == ::renderer::mouse_click_event::action_type::release &&
             e.button == ::renderer::mouse_click_event::button_type::left) {
             mouse_clicked = false;
+            cube.rotation_manager.release_rotation_axis();
         }
     });
 
-    auto* r = window.get_renderer();
-    rubiks_cube::rubiks_cube cube(r);
+
 
     window.register_mouse_position_handler([&cube](::renderer::mouse_position_event e) {
         static float last_x;
@@ -41,12 +46,24 @@ int main()
         if (mouse_clicked) {
             auto x_offset = e.x - last_x;
             auto y_offset = e.y - last_y;
-            cube.rotation.x += y_offset * 0.01;
+
             cube.rotation.y += x_offset * 0.01;
+            cube.rotation.x += y_offset * 0.01;
+
+            if (abs(x_offset) > abs(y_offset)) {
+
+                cube.rotation_manager.try_acquire_rotation_axis(rubiks_cube::rotation_manager::z_axis);
+                cube.rotation_manager.rotate(0, x_offset * 0.01);
+            } else {
+                cube.rotation_manager.try_acquire_rotation_axis(rubiks_cube::rotation_manager::y_axis);
+                cube.rotation_manager.rotate(0, y_offset * 0.01);
+            }
         }
 
         last_x = e.x;
         last_y = e.y;
+
+        pos = e;
     });
 
     window.register_resize_handler([](::renderer::resize_event e) {
@@ -55,8 +72,8 @@ int main()
     });
 
     window.register_mouse_scroll_callback([](::renderer::scroll_event e) {
-        camera.position.z += -e.y_offset;
-        camera.target_position.z += -e.y_offset;
+        auto dir = math::normalize(camera.target_position - camera.position);
+        camera.position = camera.position + dir * e.y_offset;
     });
 
     renderer::texture_descriptor color_attachment_tex_descriptor{
@@ -87,7 +104,7 @@ int main()
     auto pass = r->create_pass(pass_descriptor);
 
 
-    camera.position = {-1, 5, 15};
+    camera.position = {-10, 10, 15};
     camera.target_position = {0, 0, 0};
 
     float v = 0;
@@ -103,10 +120,14 @@ int main()
         window.update();
 
         if (mouse_clicked) {
-//            uint8_t pixel[4];
-//            auto pos_y = window.get_size().height - y;
-//            window.get_pixel_color(pixel, x, pos_y, ::renderer::texture_format::rgba, ::renderer::data_type::u8);
-//            std::cout << "R: " << float(pixel[0]) / 255.f << " G: " << float(pixel[1]) / 255.f << " B: " << float(pixel[2]) / 255.f << " A: " << float(pixel[3]) / 255.f << std::endl;
+            uint8_t pixel[4];
+            auto window_size = window.get_size();
+            auto framebuffer_size = window.get_view_size();
+            auto aspect_w = framebuffer_size.width / window_size.width;
+            auto aspect_h = framebuffer_size.height / window_size.height;
+
+            window.get_pixel_color(pixel, pos.x * aspect_w, (window.get_size().height - pos.y) * aspect_h, ::renderer::texture_format::rgba, ::renderer::data_type::u8);
+            std::cout << "R: " << float(pixel[0]) / 255.f << " G: " << float(pixel[1]) / 255.f << " B: " << float(pixel[2]) / 255.f << " A: " << float(pixel[3]) / 255.f << std::endl;
         }
     }
 

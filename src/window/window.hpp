@@ -62,6 +62,7 @@ namespace renderer
         virtual void register_mouse_scroll_callback(scroll_handler handler) = 0;
         virtual void register_resize_handler(resize_handler handler) = 0;
 
+        virtual misc::size get_view_size() = 0;
 
         misc::size get_size();
         ::renderer::renderer* get_renderer();

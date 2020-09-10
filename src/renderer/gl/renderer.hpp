@@ -38,7 +38,7 @@ namespace renderer::gl
         void update(float) override;
 
     private:
-        void draw(mesh_handler mesh_handler, shader_handler shader_handler);
+        void draw(mesh_handler mesh_handler, shader_handler shader_handler, uint32_t instances_count = 1);
         void set_gpu_state(const ::renderer::shader_state&);
 
         std::vector<vao> m_vaos;

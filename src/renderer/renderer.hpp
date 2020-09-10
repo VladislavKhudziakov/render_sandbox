@@ -172,10 +172,11 @@ namespace renderer
 
     struct draw_command
     {
-        draw_command_type type;
-        mesh_handler mesh;
-        shader_handler shader;
-        pass_handler pass;
+        draw_command_type type{draw_command_type::draw};
+        mesh_handler mesh{null};
+        shader_handler shader{null};
+        pass_handler pass{null};
+        uint32_t instances_count{1};
     };
 
 

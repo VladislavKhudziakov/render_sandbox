@@ -184,3 +184,11 @@ void renderer::glfw_window::scroll_callback(GLFWwindow* window, double x_offset,
         handler({x_offset, y_offset});
     }
 }
+
+
+misc::size renderer::glfw_window::get_view_size()
+{
+    int w, h;
+    glfwGetFramebufferSize(m_window, &w, &h);
+    return {uint32_t(w), uint32_t(h)};
+}

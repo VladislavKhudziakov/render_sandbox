@@ -39,6 +39,7 @@ namespace renderer::gl
     public:
         explicit vao(const mesh_layout_descriptor&);
         void draw();
+        void draw_instanced(uint32_t instances_count);
         void bind();
         void unbind();
     private:

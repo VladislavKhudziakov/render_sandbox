@@ -20,7 +20,8 @@ renderer::shader_handler renderer::gl::renderer::create_shader(
 
 void renderer::gl::renderer::draw(
     ::renderer::mesh_handler mesh_handler,
-    ::renderer::shader_handler shader_handler)
+    ::renderer::shader_handler shader_handler,
+    uint32_t instances_count)
 {
     constexpr static ::renderer::shader_state default_state{};
 
@@ -37,7 +38,13 @@ void renderer::gl::renderer::draw(
     }
 
     set_gpu_state(shader.m_state);
-    m_vaos[mesh_handler].draw();
+
+    if (instances_count == 1) {
+        m_vaos[mesh_handler].draw();
+    } else {
+        m_vaos[mesh_handler].draw_instanced(instances_count);
+    }
+
     set_gpu_state(default_state);
 }
 
@@ -69,7 +76,7 @@ void renderer::gl::renderer::update(float time)
                 last_pass = command.pass;
                 break;
             case draw_command_type::draw:
-                draw(command.mesh, command.shader);
+                draw(command.mesh, command.shader, command.instances_count);
                 break;
         }
     }

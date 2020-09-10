@@ -8,43 +8,24 @@
 
 namespace rubiks_cube
 {
-    struct color_data
-    {
-        float pos_x[3];
-        float neg_x[3];
-        float pos_y[3];
-        float neg_y[3];
-        float pos_z[3];
-        float neg_z[3];
-    };
-
     class cube
     {
     public:
-        constexpr static auto default_side = 2.0f;
+        enum rotation_angle
+        {
+            x_axis, y_axis, z_axis
+        };
 
-        explicit cube(renderer::renderer* renderer);
-        explicit cube(renderer::renderer* renderer, const color_data&);
-        cube(const cube&) = delete;
-        cube& operator=(const cube&) = delete;
-        cube(cube&&) noexcept;
-        cube& operator=(cube&&) noexcept;
-        ~cube();
+        explicit cube(math::ivec3 translation);
+        void rotate(uint32_t axis, float angle);
+        void update_position();
+        math::ivec3 get_position();
+        math::mat4 get_transformation();
 
-        void draw();
-
-        float side = 2.0f;
-
-        math::ivec3 position{0, 0, 0};
-        math::vec3 translation{0, 0, 0};
-
-        math::mat4 parent_transform;
     private:
-        renderer::renderer* m_renderer;
-
-        renderer::mesh_handler m_mesh;
-        renderer::shader_handler m_shader;
-        renderer::parameters_list_handler m_params_list;
+        math::mat4 m_transformation;
+        math::ivec3 m_position;
+        std::array<float, 3> m_rotation {0, 0, 0};
     };
 }
 

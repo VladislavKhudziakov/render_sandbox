@@ -45,6 +45,8 @@ renderer::gl::shader::shader(const ::renderer::shader_descriptor& descriptor)
         glUniform1i(loc, texture_slot++);
     }
 
+    GLint max_blocks;
+    glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &max_blocks);
     for (auto& [params_list_name, params_list_handler] : descriptor.parameters) {
         auto uniform_index = glGetUniformBlockIndex(m_handler, params_list_name.c_str());
         ASSERT(uniform_index >= 0);

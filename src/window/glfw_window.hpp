@@ -30,6 +30,8 @@ namespace renderer
         void register_resize_handler(resize_handler handler) override;
         void register_mouse_scroll_callback(scroll_handler handler) override;
 
+        misc::size get_view_size() override;
+
         void get_pixel_color(void* data, size_t x, size_t y, texture_format fmt, data_type type);
 
     private:
