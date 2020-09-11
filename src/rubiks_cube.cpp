@@ -17,6 +17,7 @@ layout (location = 0) in vec3 attr_pos;
 layout (std140) uniform instance_data
 {
     mat4 mvp)" << "[" << cubes_count << "];\n"
+<<  "\tvec4 cube_color" << "[" << cubes_count << "];\n"
 << R"(
 };
 
@@ -25,7 +26,7 @@ out vec4 v_color;
 void main()
 {
     gl_Position = mvp[gl_InstanceID] * vec4(attr_pos, 1.);
-    v_color = vec4(gl_VertexID / 36.0f, gl_VertexID / 36.0f, 0., 1.);
+    v_color = cube_color[gl_InstanceID];
 })";
         return oss.str();
     }
@@ -45,47 +46,47 @@ void main()
 
     // clang-format off
     constexpr float vertices[] = {
-        1.0f,  1.0f,  1.0f,
-        1.0f,  1.0f, -1.0f,
-        1.0f, -1.0f, -1.0f,
-        1.0f, -1.0f, -1.0f,
-        1.0f, -1.0f,  1.0f,
-        1.0f,  1.0f,  1.0f,
+        0.5f,  0.5f,  0.5f,
+        0.5f,  0.5f, -0.5f,
+        0.5f, -0.5f, -0.5f,
+        0.5f, -0.5f, -0.5f,
+        0.5f, -0.5f,  0.5f,
+        0.5f,  0.5f,  0.5f,
 
-        -1.0f,  1.0f,  1.0f,
-        -1.0f,  1.0f, -1.0f,
-        -1.0f, -1.0f, -1.0f,
-        -1.0f, -1.0f, -1.0f,
-        -1.0f, -1.0f,  1.0f,
-        -1.0f,  1.0f,  1.0f,
+        -0.5f,  0.5f,  0.5f,
+        -0.5f,  0.5f, -0.5f,
+        -0.5f, -0.5f, -0.5f,
+        -0.5f, -0.5f, -0.5f,
+        -0.5f, -0.5f,  0.5f,
+        -0.5f,  0.5f,  0.5f,
 
-        -1.0f,  1.0f, -1.0f,
-        1.0f,  1.0f, -1.0f,
-        1.0f,  1.0f,  1.0f,
-        1.0f,  1.0f,  1.0f,
-        -1.0f,  1.0f,  1.0f,
-        -1.0f,  1.0f, -1.0f,
+        -0.5f,  0.5f, -0.5f,
+        0.5f,  0.5f, -0.5f,
+        0.5f,  0.5f,  0.5f,
+        0.5f,  0.5f,  0.5f,
+        -0.5f,  0.5f,  0.5f,
+        -0.5f,  0.5f, -0.5f,
 
-        -1.0f, -1.0f, -1.0f,
-        1.0f, -1.0f, -1.0f,
-        1.0f, -1.0f,  1.0f,
-        1.0f, -1.0f,  1.0f,
-        -1.0f, -1.0f,  1.0f,
-        -1.0f, -1.0f, -1.0f,
+        -0.5f, -0.5f, -0.5f,
+        0.5f, -0.5f, -0.5f,
+        0.5f, -0.5f,  0.5f,
+        0.5f, -0.5f,  0.5f,
+        -0.5f, -0.5f,  0.5f,
+        -0.5f, -0.5f, -0.5f,
 
-        -1.0f, -1.0f,  1.0f,
-        1.0f, -1.0f,  1.0f,
-        1.0f,  1.0f,  1.0f,
-        1.0f,  1.0f,  1.0f,
-        -1.0f,  1.0f,  1.0f,
-        -1.0f, -1.0f,  1.0f,
+        -0.5f, -0.5f,  0.5f,
+        0.5f, -0.5f,  0.5f,
+        0.5f,  0.5f,  0.5f,
+        0.5f,  0.5f,  0.5f,
+        -0.5f,  0.5f,  0.5f,
+        -0.5f, -0.5f,  0.5f,
 
-        -1.0f, -1.0f, -1.0f,
-        1.0f, -1.0f, -1.0f,
-        1.0f,  1.0f, -1.0f,
-        1.0f,  1.0f, -1.0f,
-        -1.0f,  1.0f, -1.0f,
-        -1.0f, -1.0f, -1.0f,
+        -0.5f, -0.5f, -0.5f,
+        0.5f, -0.5f, -0.5f,
+        0.5f,  0.5f, -0.5f,
+        0.5f,  0.5f, -0.5f,
+        -0.5f,  0.5f, -0.5f,
+        -0.5f, -0.5f, -0.5f,
     };
 // clang-format on
 }
@@ -96,32 +97,34 @@ rubiks_cube::rubiks_cube::rubiks_cube(renderer::renderer* renderer, size_t size)
     , rotation_manager(size)
     , m_renderer(renderer)
 {
-    float rubiks_cube_size = size * 2;
-    float offset = 2 * 0.5f;
-    float x_pos = -rubiks_cube_size / 2 + offset;
-    float y_pos = -rubiks_cube_size / 2 + offset;
-    float z_pos = rubiks_cube_size / 2 - offset;
-    float stride = 2;
+    int rubiks_cube_size = int(size);
+    int x_pos = -rubiks_cube_size / 2;
+    int y_pos = -rubiks_cube_size / 2;
+    int z_pos = rubiks_cube_size / 2;
+    int stride = 1;
 
     m_cubes.reserve(size * size * size);
+
+    renderer::parameters_list_descriptor params_list_descriptor {
+        .parameters = {size * size * size,renderer::parameter_type::mat4}
+    };
+    params_list_descriptor.parameters.reserve(params_list_descriptor.parameters.size() + size * size * size);
 
     for (int x = 0; x < size; ++x) {
         for (int y = 0; y < size; ++y) {
             for (int z = 0; z < size; ++z) {
                 auto& new_cube = m_cubes.emplace_back(
                     math::ivec3{int32_t(x_pos), int32_t(y_pos), int32_t(z_pos)});
+                    new_cube.color = {float(x) / float(m_size), float(y) / float(m_size), float(z) / float(m_size), 1.f};
                 z_pos -= stride;
+                params_list_descriptor.parameters.emplace_back(::renderer::parameter_type::vec4);
             }
-            z_pos = rubiks_cube_size / 2 - offset;
+            z_pos = rubiks_cube_size / 2;
             y_pos += stride;
         }
-        y_pos = -rubiks_cube_size / 2 + offset;
+        y_pos = -rubiks_cube_size / 2;
         x_pos += stride;
     }
-
-    renderer::parameters_list_descriptor params_list_descriptor {
-        .parameters = {m_cubes.size(),renderer::parameter_type::mat4}
-    };
 
     m_params_list = m_renderer->create_parameters_list(params_list_descriptor);
 
@@ -142,6 +145,8 @@ rubiks_cube::rubiks_cube::rubiks_cube(renderer::renderer* renderer, size_t size)
             .depth_test = renderer::depth_test_mode::less_eq
         }
     };
+
+    std::cout << generate_cubes_vert_shader(m_cubes.size()) << std::endl;
 
     m_draw_shader = m_renderer->create_shader(shader_descriptor);
 
@@ -178,10 +183,8 @@ void rubiks_cube::rubiks_cube::update()
         auto& cube = m_cubes[i];
         auto cube_transform = cube.get_transformation() * self_transform * parent_transform;
         m_renderer->set_parameter_data(m_params_list, i, &cube_transform[0][0]);
-//        auto pos = cube.get_position();
-//        pos.x = pos.x / 2 + (m_size) / 2;
-//        pos.y = pos.y / 2 + (m_size) / 2;
-//        pos.z = pos.z / 2 + (m_size) / 2;
-//        pos = pos;
+        auto index = m_size * m_size * m_size + i;
+        m_renderer->set_parameter_data(m_params_list, index, &cube.color.x);
+        rotation_manager.rotate_cube(cube);
     }
 }

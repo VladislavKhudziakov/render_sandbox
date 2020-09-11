@@ -18,13 +18,14 @@ namespace rubiks_cube
     {
         float angle{0};
         float angle_offset;
+        int update_direction = 0;
         bool need_cubes_update_position = false;
     };
 
-    struct animation
+    struct rotation_animation
     {
         int32_t direction;
-        float bind_angle;
+        float bind_point;
         row* row;
     };
 
@@ -45,11 +46,13 @@ namespace rubiks_cube
         void try_acquire_rotation_axis(uint32_t axis);
         void release_rotation_axis();
         void rotate(uint32_t index, float angle);
+        void rotate_cube(cube& c);
 
         void update();
 
     private:
         std::array<std::vector<row>, 3> m_rows;
+        std::vector<rotation_animation> m_rotation_animations;
         std::bitset<3> m_axis_acquired;
         size_t m_size;
         uint32_t m_row_index;

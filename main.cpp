@@ -47,11 +47,10 @@ int main()
             auto x_offset = e.x - last_x;
             auto y_offset = e.y - last_y;
 
-            cube.rotation.y += x_offset * 0.01;
-            cube.rotation.x += y_offset * 0.01;
+//            cube.rotation.y += x_offset * 0.01;
+//            cube.rotation.x += y_offset * 0.01;
 
             if (abs(x_offset) > abs(y_offset)) {
-
                 cube.rotation_manager.try_acquire_rotation_axis(rubiks_cube::rotation_manager::z_axis);
                 cube.rotation_manager.rotate(0, x_offset * 0.01);
             } else {
@@ -125,9 +124,6 @@ int main()
             auto framebuffer_size = window.get_view_size();
             auto aspect_w = framebuffer_size.width / window_size.width;
             auto aspect_h = framebuffer_size.height / window_size.height;
-
-            window.get_pixel_color(pixel, pos.x * aspect_w, (window.get_size().height - pos.y) * aspect_h, ::renderer::texture_format::rgba, ::renderer::data_type::u8);
-            std::cout << "R: " << float(pixel[0]) / 255.f << " G: " << float(pixel[1]) / 255.f << " B: " << float(pixel[2]) / 255.f << " A: " << float(pixel[3]) / 255.f << std::endl;
         }
     }
 

@@ -22,24 +22,27 @@ math::mat4 rubiks_cube::cube::get_transformation()
 
 void rubiks_cube::cube::rotate(uint32_t axis, float angle)
 {
-    m_rotation[axis] = +angle;
+    m_rotation[axis] += angle;
 }
 
-void rubiks_cube::cube::update_position()
+void rubiks_cube::cube::update_position(uint32_t axis, int direction)
 {
-    auto rot_x = math::rotation_x(m_rotation[x_axis]);
-    auto rot_y = math::rotation_y(m_rotation[y_axis]);
-    auto rot_z = math::rotation_z(m_rotation[z_axis]);
+    math::mat4 rotation;
+    if (axis == x_axis) {
+        rotation = math::rotation_x(M_PI_2 * direction);
+    } else if (axis == y_axis) {
+        rotation = math::rotation_y(M_PI_2 * direction);
+    } else {
+        rotation = math::rotation_z(M_PI_2 * direction);
+    }
 
-    auto rotation = rot_x * rot_y * rot_z;
-
-    math::vec4 t{float(m_position.x), float(m_position.y), float(m_position.z), 1.0};
+    math::vec4 t{float(m_position.x), float(m_position.y), float(m_position.z), 0.0};
 
     t = rotation * t;
 
-    m_position.x = t.x;
-    m_position.y = t.y;
-    m_position.z = t.z;
+    m_position.x = round(t.x);
+    m_position.y = round(t.y);
+    m_position.z = round(t.z);
 
     m_rotation[x_axis] = 0;
     m_rotation[y_axis] = 0;

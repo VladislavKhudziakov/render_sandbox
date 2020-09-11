@@ -11,7 +11,7 @@ namespace rubiks_cube
     class rubiks_cube
     {
     public:
-        explicit rubiks_cube(renderer::renderer* renderer, size_t size = 10);
+        explicit rubiks_cube(renderer::renderer* renderer, size_t size = 5);
 
         void update();
 
