@@ -173,18 +173,19 @@ void rubiks_cube::rubiks_cube::update()
 {
     rotation_manager.update();
 
-    auto rot_m = math::rotation_x(rotation.x) * math::rotation_y(rotation.y) * math::rotation_z(rotation.z);
-    auto t_m = math::translation(translation);
-    auto s_m = math::scale(scale);
+    auto rot_m = math::rotation_x(rotation.x) * math::rotation_y(rotation.y);
+    auto t_m = math::translation({0, 0, 0.0});
 
-    auto self_transform = rot_m * t_m * s_m;
+    auto self_transform =  t_m * rot_m;
+
+    math::mat4 m = parent_transform * self_transform;
 
     for (int i = 0; i < m_cubes.size(); ++i) {
         auto& cube = m_cubes[i];
-        auto cube_transform = cube.get_transformation() * self_transform * parent_transform;
+        rotation_manager.rotate_cube(cube);
+        auto cube_transform = math::transpose(m * cube.get_transformation());
         m_renderer->set_parameter_data(m_params_list, i, &cube_transform[0][0]);
         auto index = m_size * m_size * m_size + i;
         m_renderer->set_parameter_data(m_params_list, index, &cube.color.x);
-        rotation_manager.rotate_cube(cube);
     }
 }

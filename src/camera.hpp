@@ -15,7 +15,7 @@ namespace renderer
         math::vec3 position{0, 0, 1};
         math::vec3 target_position{0, 0, 0};
         float fov{M_PI / 2};
-        float near{0.01};
+        float near{1};
         float far{100};
         float width{1};
         float height{1};

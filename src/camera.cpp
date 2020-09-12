@@ -7,7 +7,7 @@ void renderer::camera::update()
 {
     auto view = math::look_at(position, target_position, {0, 1, 0});
     auto proj = math::perspective(fov, near, far, width, height);
-    m_transformation = view * proj;
+    m_transformation =  proj * view;
 }
 
 

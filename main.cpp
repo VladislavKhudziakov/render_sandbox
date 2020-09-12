@@ -119,11 +119,20 @@ int main()
         window.update();
 
         if (mouse_clicked) {
-            uint8_t pixel[4];
-            auto window_size = window.get_size();
-            auto framebuffer_size = window.get_view_size();
-            auto aspect_w = framebuffer_size.width / window_size.width;
-            auto aspect_h = framebuffer_size.height / window_size.height;
+            auto ray = math::mouse_to_world_space_ray(
+                {float(pos.x), float(pos.y)},
+                {float(window.get_size().width), float(window.get_size().height)},
+                camera.position,
+                camera.target_position,
+                {0, 1, 0},
+                camera.fov,
+                camera.near,
+                camera.far);
+
+            auto nray = math::normalize(ray);
+
+            std::cout << "ORIGINAL RAY X: " << ray.x << " Y : " << ray.y << " Z : " << ray.z << std::endl;
+//            std::cout << "NORMALIZED RAY X: " << nray.x << " Y : " << nray.y << " Z : " << nray.z << std::endl;
         }
     }
 

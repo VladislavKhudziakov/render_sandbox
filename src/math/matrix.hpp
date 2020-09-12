@@ -414,9 +414,11 @@ namespace math
         mat4 mat{};
 
         mat[0][0] = c;
-        mat[0][1] = s;
-        mat[1][0] = -s;
+        mat[0][1] = -s;
+        mat[1][0] = s;
         mat[1][1] = c;
+        mat[2][2] = 1.0f;
+        mat[3][3] = 1.0f;
 
         return mat;
     }
@@ -428,10 +430,12 @@ namespace math
 
         mat4 mat{};
 
+        mat[0][0] = 1.0f;
         mat[1][1] = c;
-        mat[1][2] = s;
-        mat[2][1] = -s;
+        mat[1][2] = -s;
+        mat[2][1] = s;
         mat[2][2] = c;
+        mat[3][3] = 1.0f;
 
         return mat;
     }
@@ -441,18 +445,14 @@ namespace math
         float s = sin(angle);
         float c = cos(angle);
 
-        mat4 mat{
-            c,  0, -s,  0,
-            0,  1,  0,  0,
-            s,  0,  c,  0,
-            0,  0,  0,  1
-        };
+        mat4 mat;
 
-//        mat[0][0] = c;
-//        mat[0][2] = -s;
-//        mat[2][0] = s;
-//        mat[0][2] = c;
-
+        mat[0][0] = c;
+        mat[0][2] = s;
+        mat[1][1] = 1.0f;
+        mat[2][0] = -s;
+        mat[2][2] = c;
+        mat[3][3] = 1.0f;
 
         return mat;
     }
@@ -460,18 +460,24 @@ namespace math
     inline mat4 scale(vec3 s)
     {
         mat4 mat;
+
         mat[0][0] = s.x;
         mat[1][1] = s.y;
         mat[2][2] = s.z;
+        mat[3][3] = 1.0f;
+
         return mat;
     }
 
     inline mat4 translation(vec3 t)
     {
         mat4 mat;
-        mat[3][0] = t.x;
-        mat[3][1] = t.y;
-        mat[3][2] = t.z;
+        mat[0][0] = 1.0f;
+        mat[1][1] = 1.0f;
+        mat[0][3] = t.x;
+        mat[1][3] = t.y;
+        mat[2][3] = t.z;
+        mat[3][3] = 1.0f;
         return mat;
     }
 
@@ -480,45 +486,98 @@ namespace math
     {
         mat4 mat;
 
-        eye.x = -eye.x;
-        eye.y = -eye.y;
+        vec3 fwd = normalize(target - eye);
+        auto side = normalize(cross(up_dir, fwd));
+        auto up = normalize(cross(fwd, side));
+
+        mat[0][0] = side.x;
+        mat[0][1] = side.y;
+        mat[0][2] = side.z;
+        mat[0][3] = -dot(side, eye);
+
+        mat[1][0] = up.x;
+        mat[1][1] = up.y;
+        mat[1][2] = up.z;
+        mat[1][3] = -dot(up, eye);
+
+        mat[2][0] = -fwd.x;
+        mat[2][1] = -fwd.y;
+        mat[2][2] = -fwd.z;
+        mat[2][3] = dot(fwd, eye);
+
+        mat[3][3] = 1;
+
+        return mat;
+    }
+
+    inline mat4 look_at_inverse(vec3 eye, vec3 target, vec3 up_dir)
+    {
+        mat4 mat;
 
         vec3 fwd = normalize(target - eye);
         auto side = normalize(cross(fwd, up_dir));
         auto up = normalize(cross(side, fwd));
 
         mat[0][0] = side.x;
-        mat[0][1] = side.y;
-        mat[0][2] = side.z;
+        mat[1][0] = side.y;
+        mat[2][0] = side.z;
 
-        mat[1][0] = up.x;
+        mat[0][1] = up.x;
         mat[1][1] = up.y;
-        mat[1][2] = up.z;
+        mat[2][1] = up.z;
 
-        mat[2][0] = -fwd.x;
-        mat[2][1] = -fwd.y;
+        mat[0][2] = -fwd.x;
+        mat[1][2] = -fwd.y;
         mat[2][2] = -fwd.z;
 
-        mat[3][0] = -dot(side, eye);
-        mat[3][1] = -dot(up, eye);
-        mat[3][2] = dot(fwd, eye);
+        mat[0][3] = eye.x;
+        mat[1][3] = eye.y;
+        mat[2][3] = eye.z;
 
         return mat;
     }
 
 
+    inline vec3 mouse_to_world_space_ray(
+        vec2 mouse_position,
+        vec2 screen_size,
+        vec3 cam_eye,
+        vec3 cam_target,
+        vec3 cam_up,
+        float cam_fov,
+        float frustum_near,
+        float frustum_far)
+    {
+        mouse_position = (mouse_position / screen_size) * 2.0f - 1.0f;
+        mouse_position.y = -mouse_position.y;
+        float max_height = tanf(cam_fov * 0.5f);
+        float max_width = max_height * (screen_size.y / screen_size.x);
+        mouse_position = mouse_position * vec2{max_width, max_height};
+        vec3 mouse_near_position = {frustum_near * mouse_position.x, frustum_near * mouse_position.y, -frustum_near};
+        vec3 mouse_far_position = {frustum_far * mouse_position.x, frustum_far * mouse_position.y, -frustum_far};
+        vec3 camera_ray = mouse_far_position - mouse_near_position;
+
+        auto camera_to_world = look_at_inverse(cam_eye, cam_target, cam_up);
+
+        vec4 world_ray = {mouse_near_position.x, mouse_near_position.y, mouse_near_position.z, 1.0f};
+        world_ray =  camera_to_world * world_ray;
+
+        return vec3{world_ray.x, world_ray.y, world_ray.z};
+    }
+
+
     inline mat4 perspective(float fov, float near, float far, float width, float height)
     {
-        float h = cosf(fov * 0.5f) / sinf(fov * 0.5f);
-        float w = h * (height / width);
+        float h = tanf(fov * 0.5f);
+        float w = h / (width / height);
 
         mat4 mat;
 
         mat[0][0] = w;
         mat[1][1] = h;
-        mat[2][2] = -(far + near) / (far - near);
-        mat[2][3] = -1;
-        mat[3][2] = -(near * far * 2) / (far - near);
+        mat[2][2] = (near + far) / (near - far);
+        mat[2][3] = (2 * near * far) / (near - far);
+        mat[3][2] = -1;
         mat[3][3] = 0;
 
         return mat;
@@ -527,6 +586,33 @@ namespace math
     inline float radians(float degs)
     {
         return degs * float(M_PI) / 180.f;
+    }
+
+    inline mat4 transpose(mat4 m)
+    {
+        mat4 res;
+
+        res[0][0] = m[0][0];
+        res[0][1] = m[1][0];
+        res[0][2] = m[2][0];
+        res[0][3] = m[3][0];
+
+        res[1][0] = m[0][1];
+        res[1][1] = m[1][1];
+        res[1][2] = m[2][1];
+        res[1][3] = m[3][1];
+
+        res[2][0] = m[0][2];
+        res[2][1] = m[1][2];
+        res[2][2] = m[2][2];
+        res[2][3] = m[3][2];
+
+        res[3][0] = m[0][3];
+        res[3][1] = m[1][3];
+        res[3][2] = m[2][3];
+        res[3][3] = m[3][3];
+
+        return res;
     }
 
 

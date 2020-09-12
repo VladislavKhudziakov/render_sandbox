@@ -16,7 +16,7 @@ math::mat4 rubiks_cube::cube::get_transformation()
     auto rot_y = math::rotation_y(m_rotation[y_axis]);
     auto rot_z = math::rotation_z(m_rotation[z_axis]);
 
-    return math::translation({float(m_position.x), float(m_position.y), float(m_position.z)}) * rot_x * rot_y * rot_z;
+    return rot_x * rot_y * rot_z * math::translation({float(m_position.x), float(m_position.y), float(m_position.z)});
 }
 
 
@@ -38,7 +38,7 @@ void rubiks_cube::cube::update_position(uint32_t axis, int direction)
 
     math::vec4 t{float(m_position.x), float(m_position.y), float(m_position.z), 0.0};
 
-    t = rotation * t;
+    t = t * rotation;
 
     m_position.x = round(t.x);
     m_position.y = round(t.y);

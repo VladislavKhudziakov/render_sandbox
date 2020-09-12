@@ -110,9 +110,9 @@ void rubiks_cube::rotation_manager::release_rotation_axis()
     row.angle_offset = 0;
     m_row_index = -1;
 
-    auto& anim = m_rotation_animations.emplace_back();
-
-    anim.row = &row;
+//    auto& anim = m_rotation_animations.emplace_back();
+//
+//    anim.row = &row;
 
 //    if (row.angle > 0) {
 //        if (row.angle < M_PI_4) {
