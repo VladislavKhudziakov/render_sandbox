@@ -1,15 +1,12 @@
 
 #include <window/glfw_window.hpp>
 #include <renderer/renderer.hpp>
-#include <misc/images_loader.hpp>
 
 #include <camera.hpp>
 #include <rubiks_cube.hpp>
 
 renderer::camera camera{};
 bool mouse_clicked = false;
-
-::renderer::mouse_position_event pos;
 
 int main()
 {
@@ -24,22 +21,19 @@ int main()
     rubiks_cube::rubiks_cube cube(r);
 
     window.register_mouse_click_handler([&cube](::renderer::mouse_click_event e) {
-        if (e.action == ::renderer::mouse_click_event::action_type::press &&
-            e.button == ::renderer::mouse_click_event::button_type::left) {
+        if (e.action == ::renderer::mouse_click_event::action_type::press && e.button == ::renderer::mouse_click_event::button_type::left) {
             mouse_clicked = true;
         }
 
 
-        if (e.action == ::renderer::mouse_click_event::action_type::release &&
-            e.button == ::renderer::mouse_click_event::button_type::left) {
+        if (e.action == ::renderer::mouse_click_event::action_type::release && e.button == ::renderer::mouse_click_event::button_type::left) {
             mouse_clicked = false;
             cube.rotation_manager.release_rotation_axis();
         }
     });
 
 
-
-    window.register_mouse_position_handler([&cube](::renderer::mouse_position_event e) {
+    window.register_mouse_position_handler([&cube, &window](::renderer::mouse_position_event e) {
         static float last_x;
         static float last_y;
 
@@ -47,22 +41,40 @@ int main()
             auto x_offset = e.x - last_x;
             auto y_offset = e.y - last_y;
 
-            cube.rotation.y += x_offset * 0.01;
-            cube.rotation.x += y_offset * 0.01;
+            auto ray = math::mouse_to_world_space_ray(
+                {float(e.x), float(e.y)},
+                {float(window.get_size().width), float(window.get_size().height)},
+                camera.position,
+                camera.target_position,
+                {0, 1, 0},
+                camera.fov,
+                camera.near,
+                camera.far);
 
-//            if (abs(x_offset) > abs(y_offset)) {
-//                cube.rotation_manager.try_acquire_rotation_axis(rubiks_cube::rotation_manager::z_axis);
-//                cube.rotation_manager.rotate(0, x_offset * 0.01);
-//            } else {
-//                cube.rotation_manager.try_acquire_rotation_axis(rubiks_cube::rotation_manager::y_axis);
-//                cube.rotation_manager.rotate(0, y_offset * 0.01);
-//            }
+            rubiks_cube::rubiks_cube::faces face;
+            math::vec3 hit_point;
+
+            if (!cube.hit({camera.position, ray * (camera.far - camera.near)}, face, hit_point)) {
+                cube.rotation.y += x_offset * 0.01;
+                cube.rotation.x += y_offset * 0.01;
+            } else {
+                auto row_col = cube.get_row_col_by_hit_pos(face, hit_point);
+                auto axis = 2 - face / 2;
+
+                //                if (abs(x_offset) > abs(y_offset)) {
+                std::cout << "axis " << axis << std::endl;
+                std::cout << "row_col x: " << row_col.x << " y: " << row_col.y << std::endl;
+                cube.rotation_manager.try_acquire_rotation_axis(axis);
+                cube.rotation_manager.rotate(row_col.x, y_offset * 0.01);
+                //                } else {
+                //                    cube.rotation_manager.try_acquire_rotation_axis(axis);
+                //                    cube.rotation_manager.rotate(row_col.y, y_offset * 0.01);
+                //                }
+            }
         }
 
         last_x = e.x;
         last_y = e.y;
-
-        pos = e;
     });
 
     window.register_resize_handler([](::renderer::resize_event e) {
@@ -102,7 +114,7 @@ int main()
 
     auto pass = r->create_pass(pass_descriptor);
 
-    camera.position = {0, 0, 15};
+    camera.position = {-10, 10, 10};
     camera.target_position = {0, 0, 0};
 
     while (!window.closed()) {
@@ -113,24 +125,6 @@ int main()
         r->encode_draw_command({.type = renderer::draw_command_type::pass, .pass = pass});
         cube.update();
 
-        auto ray = math::mouse_to_world_space_ray(
-            {float(pos.x), float(pos.y)},
-            {float(window.get_size().width), float(window.get_size().height)},
-            camera.position,
-            camera.target_position,
-            {0, 1, 0},
-            camera.fov,
-            camera.near,
-            camera.far);
-        rubiks_cube::rubiks_cube::faces face;
-        math::vec3 hit_point;
-
-        if (cube.hit({camera.position, ray * (camera.far - camera.near)}, face, hit_point)) {
-            std::cout << "ray hits face " << face << std::endl;
-            std::cout << "at point x: " << hit_point.x << " y: " << hit_point.y << " z: " << hit_point.z << std::endl;
-            auto row_col = cube.get_row_col_by_hit_pos(face, hit_point);
-            std::cout << "hit column x: " << row_col.x << " y: " << row_col.y << std::endl;
-        }
         cube.draw();
         window.update();
     }

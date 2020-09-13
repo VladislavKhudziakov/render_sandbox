@@ -57,4 +57,4 @@ namespace rubiks_cube
         size_t m_size;
         uint32_t m_row_index;
     };
-}
+} // namespace rubiks_cube

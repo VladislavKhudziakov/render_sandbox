@@ -137,7 +137,7 @@ namespace math
     template<typename DataType, size_t size>
     DataType dot(vec<size, DataType> lhs, vec<size, DataType> rhs)
     {
-        return detail::dot_product<size - 1>:: template calculate<detail::vector_element, detail::vector_element>(lhs, rhs);
+        return detail::dot_product<size - 1>::template calculate<detail::vector_element, detail::vector_element>(lhs, rhs);
     }
 
     template<typename DataType>

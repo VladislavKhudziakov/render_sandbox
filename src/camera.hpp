@@ -23,5 +23,4 @@ namespace renderer
     private:
         math::mat4 m_transformation;
     };
-}
-
+} // namespace renderer

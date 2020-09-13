@@ -54,4 +54,4 @@ namespace math
 
         return abs(2 * M_PI - total) < 0.000001;
     }
-}
+} // namespace math

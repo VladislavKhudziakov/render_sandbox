@@ -13,7 +13,9 @@ namespace rubiks_cube
     public:
         enum rotation_angle
         {
-            x_axis, y_axis, z_axis
+            x_axis,
+            y_axis,
+            z_axis
         };
 
         math::vec4 color;
@@ -27,7 +29,6 @@ namespace rubiks_cube
     private:
         math::mat4 m_transformation;
         math::ivec3 m_position;
-        std::array<float, 3> m_rotation {0, 0, 0};
+        std::array<float, 3> m_rotation{0, 0, 0};
     };
-}
-
+} // namespace rubiks_cube
