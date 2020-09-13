@@ -189,7 +189,7 @@ void rubiks_cube::rubiks_cube::update()
 }
 
 
-bool rubiks_cube::rubiks_cube::hit(math::ray ray, size_t& index)
+bool rubiks_cube::rubiks_cube::hit(math::ray ray, faces& face, math::vec3& out_hit_point)
 {
     static math::vec3 vertices[] = {
         // pos x
@@ -223,10 +223,10 @@ bool rubiks_cube::rubiks_cube::hit(math::ray ray, size_t& index)
         {-0.5f,  0.5f,  0.5f},
 
         // neg z
-        {-0.5f,  0.5f,  0.5f},
-        {0.5f,  0.5f,  0.5f},
-        {0.5f,  -0.5f,  0.5f},
-        {-0.5f,  -0.5f,  0.5f},
+        {-0.5f,  0.5f,  -0.5f},
+        {0.5f,  0.5f,  -0.5f},
+        {0.5f,  -0.5f,  -0.5f},
+        {-0.5f,  -0.5f,  -0.5f},
     };
 
     std::vector<int> hit_surfaces;
@@ -241,6 +241,10 @@ bool rubiks_cube::rubiks_cube::hit(math::ray ray, size_t& index)
 
     ray.from = {ray_model_from.x, ray_model_from.y, ray_model_from.z};
     ray.to = {ray_model_to.x, ray_model_to.y, ray_model_to.z};
+
+    bool intersection_success = false;
+    math::vec3 intersection_hit_point;
+    uint32_t intersection_face = 0;
 
     for (int i = 0; i < std::size(vertices); i+=4) {
         auto e1 = vertices[i + 1] - vertices[i];
@@ -258,11 +262,89 @@ bool rubiks_cube::rubiks_cube::hit(math::ray ray, size_t& index)
             };
 
             if (math::is_point_inside_polygon(hit_point, scaled_vertices, 4)) {
-                index = i;
-                hit_surfaces.emplace_back(index);
+                if (!intersection_success) {
+                    intersection_hit_point = hit_point;
+                    intersection_success = true;
+                    intersection_face = i / 4;
+                } else {
+                    auto dist = math::length(hit_point - ray.from);
+                    auto last_dist = math::length(intersection_hit_point - ray.from);
+                    if (dist < last_dist) {
+                        intersection_face = i / 4;
+                        intersection_hit_point = hit_point;
+                    }
+                }
             }
         }
     }
 
-    return !hit_surfaces.empty();
+    face = static_cast<faces>(intersection_face);
+    out_hit_point = intersection_hit_point;
+
+    return intersection_success;
+}
+
+
+math::ivec2 rubiks_cube::rubiks_cube::get_row_col_by_hit_pos(faces& face, math::vec3 hit_point)
+{
+    float x_min = -float(m_size) / 2;
+    float y_min = -float(m_size) / 2;
+
+    math::ivec2 res;
+
+    for (int x = 0; x < m_size; ++x) {
+        switch (face) {
+            case pos_x:
+                [[fallthrough]];
+            case neg_x:
+                if (hit_point.z >= x_min && hit_point.z <= x_min + 1) {
+                    res.x = x;
+                }
+                break;
+            case pos_y:
+                [[fallthrough]];
+            case neg_y:
+                [[fallthrough]];
+            case pos_z:
+                [[fallthrough]];
+            case neg_z:
+                if (hit_point.x >= x_min && hit_point.x <= x_min + 1) {
+                    res.x = x;
+                }
+                break;
+            default:
+                throw std::runtime_error("invalid face");
+        }
+
+        x_min += 1;
+    }
+
+    for (int y = 0; y < m_size; ++y) {
+        switch (face) {
+            case pos_y:
+                [[fallthrough]];
+            case neg_y:
+                if (hit_point.z >= y_min && hit_point.z <= y_min + 1) {
+                    res.y = y;
+                }
+                break;
+            case pos_x:
+                [[fallthrough]];
+            case neg_x:
+                [[fallthrough]];
+            case pos_z:
+                [[fallthrough]];
+            case neg_z:
+                if (hit_point.y >= y_min && hit_point.y <= y_min + 1) {
+                    res.y = y;
+                }
+                break;
+            default:
+                throw std::runtime_error("invalid face");
+        }
+
+        y_min += 1;
+    }
+
+    return res;
 }

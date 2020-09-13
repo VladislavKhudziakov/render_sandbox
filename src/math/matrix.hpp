@@ -644,10 +644,10 @@ namespace math
         float frustum_far)
     {
         mouse_position = (mouse_position / screen_size) * 2.0f;
-        mouse_position.x = 1.0f - mouse_position.x;
+        mouse_position.x = mouse_position.x - 1.0f;
         mouse_position.y = 1.0f - mouse_position.y;
         mouse_position.y = mouse_position.y * tanf(cam_fov * 0.5f);
-        mouse_position.x = -mouse_position.x * tanf(cam_fov * 0.5f);
+        mouse_position.x = mouse_position.x * tanf(cam_fov * 0.5f);
         auto inv_proj = inverse(perspective(cam_fov, frustum_near, frustum_far, screen_size.x, screen_size.y));
         auto inv_view = inverse(look_at(cam_eye, cam_target, cam_up));
         auto view_cords = vec4{mouse_position.x, mouse_position.y, -1, 1};

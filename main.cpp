@@ -102,7 +102,7 @@ int main()
 
     auto pass = r->create_pass(pass_descriptor);
 
-    camera.position = {-15, 15, 15};
+    camera.position = {0, 0, 15};
     camera.target_position = {0, 0, 0};
 
     while (!window.closed()) {
@@ -122,10 +122,14 @@ int main()
             camera.fov,
             camera.near,
             camera.far);
-        size_t i;
-        std::cout << "ray x " << ray.x * (camera.far) << " y " << ray.y * (camera.far) << " z " << ray.z * (camera.far) << std::endl;
-        if (cube.hit({camera.position, ray * (camera.far)}, i)) {
-            std::cout << "hit! " << i << std::endl;
+        rubiks_cube::rubiks_cube::faces face;
+        math::vec3 hit_point;
+
+        if (cube.hit({camera.position, ray * (camera.far - camera.near)}, face, hit_point)) {
+            std::cout << "ray hits face " << face << std::endl;
+            std::cout << "at point x: " << hit_point.x << " y: " << hit_point.y << " z: " << hit_point.z << std::endl;
+            auto row_col = cube.get_row_col_by_hit_pos(face, hit_point);
+            std::cout << "hit column x: " << row_col.x << " y: " << row_col.y << std::endl;
         }
         cube.draw();
         window.update();

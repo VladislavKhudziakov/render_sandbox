@@ -19,7 +19,7 @@ namespace math
         vec3 ray_dir = ray.to - ray.from;
         auto ray_line_dist = dot(ray_dir, normal);
 
-        if (abs(ray_line_dist) < 0.000001) {
+        if (abs(ray_line_dist) < 0.00001) {
             return false;
         }
 
@@ -51,10 +51,7 @@ namespace math
         }
 
         total += acosf(dot(point_to_vertex_vectors[polygon_size - 1], point_to_vertex_vectors[0]));
-        if (abs(2 * M_PI - total) < 0.001) {
-            float a = 5;
-            a += 10;
-        }
-        return abs(2 * M_PI - total) < 0.001;
+
+        return abs(2 * M_PI - total) < 0.000001;
     }
 }
