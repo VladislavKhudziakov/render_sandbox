@@ -36,25 +36,25 @@ namespace rubiks_cube
 
         explicit rotation_manager(size_t size);
 
-        enum
+        enum axis
         {
-            x_axis,
-            y_axis,
-            z_axis
+            x,
+            y,
+            z
         };
 
-        void try_acquire_rotation_axis(uint32_t axis);
-        void release_rotation_axis();
-        void rotate(uint32_t index, float angle);
+        void acquire_row(axis axis, uint32_t index);
+        void release_row();
+        void rotate(float angle);
+        bool is_any_row_acquired();
         void rotate_cube(cube& c);
-
         void update();
 
     private:
         std::array<std::vector<row>, 3> m_rows;
         std::vector<rotation_animation> m_rotation_animations;
-        std::bitset<3> m_axis_acquired;
         size_t m_size;
-        uint32_t m_row_index;
+        uint32_t m_acquired_row{uint32_t(-1)};
+        axis m_acquired_axis{axis::x};
     };
 } // namespace rubiks_cube

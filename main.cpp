@@ -28,7 +28,9 @@ int main()
 
         if (e.action == ::renderer::mouse_click_event::action_type::release && e.button == ::renderer::mouse_click_event::button_type::left) {
             mouse_clicked = false;
-            cube.rotation_manager.release_rotation_axis();
+            if (cube.rotation_manager.is_any_row_acquired()) {
+                cube.rotation_manager.release_row();
+            }
         }
     });
 
@@ -36,6 +38,7 @@ int main()
     window.register_mouse_position_handler([&cube, &window](::renderer::mouse_position_event e) {
         static float last_x;
         static float last_y;
+        static bool x_axis;
 
         if (mouse_clicked) {
             auto x_offset = e.x - last_x;
@@ -51,25 +54,26 @@ int main()
                 camera.near,
                 camera.far);
 
-            rubiks_cube::rubiks_cube::faces face;
+            rubiks_cube::rubiks_cube::face face;
             math::vec3 hit_point;
 
-            if (!cube.hit({camera.position, ray * (camera.far - camera.near)}, face, hit_point)) {
-                cube.rotation.y += x_offset * 0.01;
-                cube.rotation.x += y_offset * 0.01;
+            if (cube.rotation_manager.is_any_row_acquired()) {
+                cube.rotation_manager.rotate((x_axis ? x_offset : y_offset) * 0.01); // in reverse order
             } else {
-                auto row_col = cube.get_row_col_by_hit_pos(face, hit_point);
-                auto axis = 2 - face / 2;
+                if (!cube.hit({camera.position, ray * (camera.far - camera.near)}, face, hit_point)) {
+                    cube.rotation.y += x_offset * 0.01;
+                    cube.rotation.x += y_offset * 0.01;
+                } else {
+                    auto row_col = cube.get_row_col_by_hit_pos(face, hit_point);
+                    auto axis = cube.get_face_rotation_axis(face);
+                    x_axis = abs(x_offset) >= abs(y_offset);
+                    auto row_index = x_axis ? row_col.y : row_col.x; // in reverse order
+                    auto axis_index = x_axis ? axis.x : axis.y;
 
-                //                if (abs(x_offset) > abs(y_offset)) {
-                std::cout << "axis " << axis << std::endl;
-                std::cout << "row_col x: " << row_col.x << " y: " << row_col.y << std::endl;
-                cube.rotation_manager.try_acquire_rotation_axis(axis);
-                cube.rotation_manager.rotate(row_col.x, y_offset * 0.01);
-                //                } else {
-                //                    cube.rotation_manager.try_acquire_rotation_axis(axis);
-                //                    cube.rotation_manager.rotate(row_col.y, y_offset * 0.01);
-                //                }
+                    cube.rotation_manager.acquire_row(rubiks_cube::rotation_manager::axis(axis_index), row_index);
+                    std::cout << "axis " << axis_index << std::endl;
+                    std::cout << "row_col x: " << row_col.x << " y: " << row_col.y << std::endl;
+                }
             }
         }
 
@@ -114,7 +118,7 @@ int main()
 
     auto pass = r->create_pass(pass_descriptor);
 
-    camera.position = {-10, 10, 10};
+    camera.position = {-10, 10, -10};
     camera.target_position = {0, 0, 0};
 
     while (!window.closed()) {

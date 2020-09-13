@@ -101,7 +101,7 @@ rubiks_cube::rubiks_cube::rubiks_cube(renderer::renderer* renderer, size_t size)
     int rubiks_cube_size = int(size);
     int x_pos = -rubiks_cube_size / 2;
     int y_pos = -rubiks_cube_size / 2;
-    int z_pos = rubiks_cube_size / 2;
+    int z_pos = -rubiks_cube_size / 2;
     int stride = 1;
 
     m_cubes.reserve(size * size * size);
@@ -116,10 +116,10 @@ rubiks_cube::rubiks_cube::rubiks_cube(renderer::renderer* renderer, size_t size)
                 auto& new_cube = m_cubes.emplace_back(
                     math::ivec3{int32_t(x_pos), int32_t(y_pos), int32_t(z_pos)});
                 new_cube.color = {float(x) / float(m_size), float(y) / float(m_size), float(z) / float(m_size), 1.f};
-                z_pos -= stride;
+                z_pos += stride;
                 params_list_descriptor.parameters.emplace_back(::renderer::parameter_type::vec4);
             }
-            z_pos = rubiks_cube_size / 2;
+            z_pos = -rubiks_cube_size / 2;
             y_pos += stride;
         }
         y_pos = -rubiks_cube_size / 2;
@@ -179,7 +179,7 @@ void rubiks_cube::rubiks_cube::update()
 }
 
 
-bool rubiks_cube::rubiks_cube::hit(math::ray ray, faces& face, math::vec3& out_hit_point)
+bool rubiks_cube::rubiks_cube::hit(math::ray ray, face& face, math::vec3& out_hit_point)
 {
     static math::vec3 vertices[] = {
         // pos x
@@ -268,14 +268,14 @@ bool rubiks_cube::rubiks_cube::hit(math::ray ray, faces& face, math::vec3& out_h
         }
     }
 
-    face = static_cast<faces>(intersection_face);
+    face = rubiks_cube::face(intersection_face);
     out_hit_point = intersection_hit_point;
 
     return intersection_success;
 }
 
 
-math::ivec2 rubiks_cube::rubiks_cube::get_row_col_by_hit_pos(faces& face, math::vec3 hit_point)
+math::ivec2 rubiks_cube::rubiks_cube::get_row_col_by_hit_pos(face& face, math::vec3 hit_point)
 {
     float x_min = -float(m_size) / 2;
     float y_min = -float(m_size) / 2;
@@ -288,7 +288,7 @@ math::ivec2 rubiks_cube::rubiks_cube::get_row_col_by_hit_pos(faces& face, math::
                 [[fallthrough]];
             case neg_x:
                 if (hit_point.z >= x_min && hit_point.z <= x_min + 1) {
-                    res.x = x;
+                    res.x = (m_size - 1) - x; // in reverse order
                 }
                 break;
             case pos_y:
@@ -296,7 +296,10 @@ math::ivec2 rubiks_cube::rubiks_cube::get_row_col_by_hit_pos(faces& face, math::
             case neg_y:
                 [[fallthrough]];
             case pos_z:
-                [[fallthrough]];
+                if (hit_point.x >= x_min && hit_point.x <= x_min + 1) {
+                    res.y = x; // yes y = x
+                }
+                break;
             case neg_z:
                 if (hit_point.x >= x_min && hit_point.x <= x_min + 1) {
                     res.x = x;
@@ -315,7 +318,7 @@ math::ivec2 rubiks_cube::rubiks_cube::get_row_col_by_hit_pos(faces& face, math::
                 [[fallthrough]];
             case neg_y:
                 if (hit_point.z >= y_min && hit_point.z <= y_min + 1) {
-                    res.y = y;
+                    res.x = (m_size - 1) - y;
                 }
                 break;
             case pos_x:
@@ -337,4 +340,25 @@ math::ivec2 rubiks_cube::rubiks_cube::get_row_col_by_hit_pos(faces& face, math::
     }
 
     return res;
+}
+
+
+math::ivec2 rubiks_cube::rubiks_cube::get_face_rotation_axis(rubiks_cube::rubiks_cube::face face)
+{
+    switch (face) {
+        case pos_x:
+            [[fallthrough]];
+        case neg_x:
+            return {rotation_manager::axis::y, rotation_manager::axis::z};
+        case pos_y:
+            [[fallthrough]];
+        case neg_y:
+            return {rotation_manager::axis::x, rotation_manager::axis::z};
+        case pos_z:
+            [[fallthrough]];
+        case neg_z:
+            return {rotation_manager::axis::y, rotation_manager::axis::x};
+        default:
+            throw std::runtime_error("invalid axis");
+    }
 }

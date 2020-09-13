@@ -12,7 +12,7 @@ namespace rubiks_cube
     class rubiks_cube
     {
     public:
-        enum faces
+        enum face
         {
             pos_x,
             neg_x,
@@ -24,13 +24,11 @@ namespace rubiks_cube
         };
 
         explicit rubiks_cube(renderer::renderer* renderer, size_t size = 5);
-
         void update();
-
         void draw();
-
-        bool hit(math::ray ray, faces& face, math::vec3& hit_point);
-        math::ivec2 get_row_col_by_hit_pos(faces& face, math::vec3 hit_point);
+        bool hit(math::ray ray, face& face, math::vec3& hit_point);
+        math::ivec2 get_row_col_by_hit_pos(face& face, math::vec3 hit_point);
+        math::ivec2 get_face_rotation_axis(face face);
 
         math::mat4 parent_transform;
 

@@ -7,9 +7,9 @@
 rubiks_cube::rotation_manager::rotation_manager(size_t size)
 : m_size(size)
 {
-    m_rows[x_axis].resize(size);
-    m_rows[y_axis].resize(size);
-    m_rows[z_axis].resize(size);
+    m_rows[axis::x].resize(size);
+    m_rows[axis::y].resize(size);
+    m_rows[axis::z].resize(size);
 }
 
 
@@ -32,23 +32,14 @@ void rubiks_cube::rotation_manager::update()
 }
 
 
-void rubiks_cube::rotation_manager::rotate(uint32_t index, float angle_offset)
+void rubiks_cube::rotation_manager::rotate(float angle_offset)
 {
-    uint32_t rot_axis;
-
-    if (m_axis_acquired.test(x_axis)) {
-        rot_axis = x_axis;
-    } else if (m_axis_acquired.test(y_axis)) {
-        rot_axis = y_axis;
-    } else if (m_axis_acquired.test(z_axis)) {
-        rot_axis = z_axis;
-    } else {
+    if (!is_any_row_acquired()) {
         return;
     }
 
+    auto& row = m_rows[m_acquired_axis][m_acquired_row];
 
-    m_row_index = index;
-    auto& row = m_rows[rot_axis][index];
     row.need_cubes_update_position = false;
 
     row.angle_offset = angle_offset;
@@ -77,63 +68,6 @@ void rubiks_cube::rotation_manager::rotate(uint32_t index, float angle_offset)
 }
 
 
-void rubiks_cube::rotation_manager::try_acquire_rotation_axis(uint32_t axis)
-{
-    if (!m_rotation_animations.empty()) {
-        return;
-    }
-
-    if (!m_axis_acquired.any() && !m_axis_acquired.test(axis)) {
-        m_axis_acquired.set(axis);
-    }
-}
-
-
-void rubiks_cube::rotation_manager::release_rotation_axis()
-{
-    uint32_t rot_axis;
-
-    if (m_axis_acquired.test(x_axis)) {
-        rot_axis = x_axis;
-    } else if (m_axis_acquired.test(y_axis)) {
-        rot_axis = y_axis;
-    } else if (m_axis_acquired.test(z_axis)) {
-        rot_axis = z_axis;
-    } else {
-        return;
-    }
-
-    m_axis_acquired.reset();
-
-    auto& row = m_rows[rot_axis][m_row_index];
-
-    row.angle_offset = 0;
-    m_row_index = -1;
-
-//    auto& anim = m_rotation_animations.emplace_back();
-//
-//    anim.row = &row;
-
-//    if (row.angle > 0) {
-//        if (row.angle < M_PI_4) {
-//            anim.direction = -1;
-//            anim.bind_point = 0;
-//        } else {
-//            anim.direction = 1;
-//            anim.bind_point = M_PI_2;
-//        }
-//    } else {
-//        if (row.angle > -M_PI_4) {
-//            anim.direction = 1;
-//            anim.bind_point = 0;
-//        } else {
-//            anim.direction = -1;
-//            anim.bind_point = -M_PI_2;
-//        }
-//    }
-}
-
-
 void rubiks_cube::rotation_manager::rotate_cube(rubiks_cube::cube& c)
 {
     auto pos = c.get_position();
@@ -142,19 +76,40 @@ void rubiks_cube::rotation_manager::rotate_cube(rubiks_cube::cube& c)
     pos.y = pos.y + (m_size / 2);
     pos.z = -(pos.z - (m_size / 2));
 
-    auto& row_x = m_rows[x_axis][pos.x];
-    auto& row_y = m_rows[y_axis][pos.y];
-    auto& row_z = m_rows[z_axis][pos.z];
+    auto& row_x = m_rows[axis::x][pos.x];
+    auto& row_y = m_rows[axis::y][pos.y];
+    auto& row_z = m_rows[axis::z][pos.z];
 
-    c.rotate(x_axis, row_x.angle_offset);
-    c.rotate(y_axis, row_y.angle_offset);
-    c.rotate(z_axis, row_z.angle_offset);
+    c.rotate(axis::x, row_x.angle_offset);
+    c.rotate(axis::y, row_y.angle_offset);
+    c.rotate(axis::z, row_z.angle_offset);
 
     if (row_x.need_cubes_update_position) {
-        c.update_position(x_axis, row_x.update_direction);
+        c.update_position(axis::x, row_x.update_direction);
     } else if (row_y.need_cubes_update_position) {
-        c.update_position(y_axis, row_y.update_direction);
+        c.update_position(axis::y, row_y.update_direction);
     } else if (row_z.need_cubes_update_position) {
-        c.update_position(z_axis, row_z.update_direction);
+        c.update_position(axis::z, row_z.update_direction);
     }
+}
+
+
+void rubiks_cube::rotation_manager::acquire_row(rubiks_cube::rotation_manager::axis axis, uint32_t index)
+{
+    m_acquired_row = index;
+    m_acquired_axis = axis;
+}
+
+
+void rubiks_cube::rotation_manager::release_row()
+{
+    m_rows[m_acquired_axis][m_acquired_row].angle_offset = 0;
+    m_rows[m_acquired_axis][m_acquired_row].angle = 0;
+    m_acquired_row = uint32_t(-1);
+}
+
+
+bool rubiks_cube::rotation_manager::is_any_row_acquired()
+{
+    return m_acquired_row != uint32_t(-1);
 }
