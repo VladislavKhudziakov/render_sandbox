@@ -62,7 +62,7 @@ void rubiks_cube::rotation_manager::rotate(uint32_t index, float angle_offset)
             row.angle += angle_offset;
             row.angle_offset = angle_offset;
         }
-        row.update_direction = -1;
+        row.update_direction = 1;
     } else if (angle_offset < 0) {
         if (row.angle - angle_offset < -M_PI_2) {
             row.angle_offset = row.angle + M_PI_2;
@@ -72,7 +72,7 @@ void rubiks_cube::rotation_manager::rotate(uint32_t index, float angle_offset)
             row.angle += angle_offset;
             row.angle_offset = angle_offset;
         }
-        row.update_direction = 1;
+        row.update_direction = -1;
     }
 }
 

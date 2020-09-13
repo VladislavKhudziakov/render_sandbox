@@ -174,11 +174,9 @@ void rubiks_cube::rubiks_cube::update()
     rotation_manager.update();
 
     auto rot_m = math::rotation_x(rotation.x) * math::rotation_y(rotation.y);
-    auto t_m = math::translation({0, 0, 0.0});
+    m_transform =  rot_m;
 
-    auto self_transform =  t_m * rot_m;
-
-    math::mat4 m = parent_transform * self_transform;
+    math::mat4 m = parent_transform * m_transform;
 
     for (int i = 0; i < m_cubes.size(); ++i) {
         auto& cube = m_cubes[i];
@@ -188,4 +186,83 @@ void rubiks_cube::rubiks_cube::update()
         auto index = m_size * m_size * m_size + i;
         m_renderer->set_parameter_data(m_params_list, index, &cube.color.x);
     }
+}
+
+
+bool rubiks_cube::rubiks_cube::hit(math::ray ray, size_t& index)
+{
+    static math::vec3 vertices[] = {
+        // pos x
+        {0.5f,  -0.5f,  0.5f},
+        {0.5f,  -0.5f,  -0.5f},
+        {0.5f,  0.5f,  -0.5f},
+        {0.5f,  0.5f,  0.5f},
+
+        // neg x
+        {-0.5f,  0.5f,  -0.5f},
+        {-0.5f,  -0.5f,  -0.5f},
+        {-0.5f,  -0.5f,  0.5f},
+        {-0.5f,  0.5f,  0.5f},
+
+        // pos y
+        {-0.5f,  0.5f,  0.5f},
+        {0.5f,  0.5f,  0.5f},
+        {0.5f,  0.5f,  -0.5f},
+        {-0.5f,  0.5f,  -0.5f},
+
+        // neg y
+        {-0.5f,  -0.5f,  -0.5f},
+        {0.5f,  -0.5f,  -0.5f},
+        {0.5f,  -0.5f,  0.5f},
+        {-0.5f,  -0.5f,  0.5f},
+
+        // pos z
+        {-0.5f,  -0.5f,  0.5f},
+        {0.5f,  -0.5f,  0.5f},
+        {0.5f,  0.5f,  0.5f},
+        {-0.5f,  0.5f,  0.5f},
+
+        // neg z
+        {-0.5f,  0.5f,  0.5f},
+        {0.5f,  0.5f,  0.5f},
+        {0.5f,  -0.5f,  0.5f},
+        {-0.5f,  -0.5f,  0.5f},
+    };
+
+    std::vector<int> hit_surfaces;
+
+    auto world_to_model = math::inverse(m_transform);
+
+    math::vec4 ray_model_from {ray.from.x, ray.from.y, ray.from.z, 1};
+    ray_model_from = world_to_model * ray_model_from;
+
+    math::vec4 ray_model_to {ray.to.x, ray.to.y, ray.to.z, 1};
+    ray_model_to = world_to_model * ray_model_to;
+
+    ray.from = {ray_model_from.x, ray_model_from.y, ray_model_from.z};
+    ray.to = {ray_model_to.x, ray_model_to.y, ray_model_to.z};
+
+    for (int i = 0; i < std::size(vertices); i+=4) {
+        auto e1 = vertices[i + 1] - vertices[i];
+        auto e2 = vertices[i + 3] - vertices[i];
+        auto n = math::normalize(math::cross(e1, e2));
+        math::vec3 hit_point;
+        auto hit_success = math::hit_with_surface(ray, vertices[i] * m_size, n, hit_point);
+
+        if (hit_success) {
+            math::vec3 scaled_vertices[] {
+                vertices[i] * m_size,
+                vertices[i + 1] * m_size,
+                vertices[i + 2] * m_size,
+                vertices[i + 3] * m_size,
+            };
+
+            if (math::is_point_inside_polygon(hit_point, scaled_vertices, 4)) {
+                index = i;
+                hit_surfaces.emplace_back(index);
+            }
+        }
+    }
+
+    return !hit_surfaces.empty();
 }

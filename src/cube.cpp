@@ -38,7 +38,7 @@ void rubiks_cube::cube::update_position(uint32_t axis, int direction)
 
     math::vec4 t{float(m_position.x), float(m_position.y), float(m_position.z), 0.0};
 
-    t = t * rotation;
+    t = rotation * t;
 
     m_position.x = round(t.x);
     m_position.y = round(t.y);

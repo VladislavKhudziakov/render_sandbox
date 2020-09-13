@@ -510,61 +510,6 @@ namespace math
         return mat;
     }
 
-    inline mat4 look_at_inverse(vec3 eye, vec3 target, vec3 up_dir)
-    {
-        mat4 mat;
-
-        vec3 fwd = normalize(target - eye);
-        auto side = normalize(cross(fwd, up_dir));
-        auto up = normalize(cross(side, fwd));
-
-        mat[0][0] = side.x;
-        mat[1][0] = side.y;
-        mat[2][0] = side.z;
-
-        mat[0][1] = up.x;
-        mat[1][1] = up.y;
-        mat[2][1] = up.z;
-
-        mat[0][2] = -fwd.x;
-        mat[1][2] = -fwd.y;
-        mat[2][2] = -fwd.z;
-
-        mat[0][3] = eye.x;
-        mat[1][3] = eye.y;
-        mat[2][3] = eye.z;
-
-        return mat;
-    }
-
-
-    inline vec3 mouse_to_world_space_ray(
-        vec2 mouse_position,
-        vec2 screen_size,
-        vec3 cam_eye,
-        vec3 cam_target,
-        vec3 cam_up,
-        float cam_fov,
-        float frustum_near,
-        float frustum_far)
-    {
-        mouse_position = (mouse_position / screen_size) * 2.0f - 1.0f;
-        mouse_position.y = -mouse_position.y;
-        float max_height = tanf(cam_fov * 0.5f);
-        float max_width = max_height * (screen_size.y / screen_size.x);
-        mouse_position = mouse_position * vec2{max_width, max_height};
-        vec3 mouse_near_position = {frustum_near * mouse_position.x, frustum_near * mouse_position.y, -frustum_near};
-        vec3 mouse_far_position = {frustum_far * mouse_position.x, frustum_far * mouse_position.y, -frustum_far};
-        vec3 camera_ray = mouse_far_position - mouse_near_position;
-
-        auto camera_to_world = look_at_inverse(cam_eye, cam_target, cam_up);
-
-        vec4 world_ray = {mouse_near_position.x, mouse_near_position.y, mouse_near_position.z, 1.0f};
-        world_ray =  camera_to_world * world_ray;
-
-        return vec3{world_ray.x, world_ray.y, world_ray.z};
-    }
-
 
     inline mat4 perspective(float fov, float near, float far, float width, float height)
     {
@@ -588,7 +533,7 @@ namespace math
         return degs * float(M_PI) / 180.f;
     }
 
-    inline mat4 transpose(mat4 m)
+    inline mat4 transpose(const mat4& m)
     {
         mat4 res;
 
@@ -613,6 +558,105 @@ namespace math
         res[3][3] = m[3][3];
 
         return res;
+    }
+
+
+    inline mat4 inverse(const mat4& m)
+    {
+        auto tmp_0  = m[2][2] * m[3][3];
+        auto tmp_1  = m[3][2] * m[2][3];
+        auto tmp_2  = m[1][2] * m[3][3];
+        auto tmp_3  = m[3][2] * m[1][3];
+        auto tmp_4  = m[1][2] * m[2][3];
+        auto tmp_5  = m[2][2] * m[1][3];
+        auto tmp_6  = m[0][2] * m[3][3];
+        auto tmp_7  = m[3][2] * m[0][3];
+        auto tmp_8  = m[0][2] * m[2][3];
+        auto tmp_9  = m[2][2] * m[0][3];
+        auto tmp_10 = m[0][2] * m[1][3];
+        auto tmp_11 = m[1][2] * m[0][3];
+        auto tmp_12 = m[2][0] * m[3][1];
+        auto tmp_13 = m[3][0] * m[2][1];
+        auto tmp_14 = m[1][0] * m[3][1];
+        auto tmp_15 = m[3][0] * m[1][1];
+        auto tmp_16 = m[1][0] * m[2][1];
+        auto tmp_17 = m[2][0] * m[1][1];
+        auto tmp_18 = m[0][0] * m[3][1];
+        auto tmp_19 = m[3][0] * m[0][1];
+        auto tmp_20 = m[0][0] * m[2][1];
+        auto tmp_21 = m[2][0] * m[0][1];
+        auto tmp_22 = m[0][0] * m[1][1];
+        auto tmp_23 = m[1][0] * m[0][1];
+
+        auto t0 = (tmp_0 * m[1][1] + tmp_3 * m[2][1] + tmp_4 * m[3][1]) -
+                   (tmp_1 * m[1][1] + tmp_2 * m[2][1] + tmp_5 * m[3][1]);
+        auto t1 = (tmp_1 * m[0][1] + tmp_6 * m[2][1] + tmp_9 * m[3][1]) -
+                   (tmp_0 * m[0][1] + tmp_7 * m[2][1] + tmp_8 * m[3][1]);
+        auto t2 = (tmp_2 * m[0][1] + tmp_7 * m[1][1] + tmp_10 * m[3][1]) -
+                   (tmp_3 * m[0][1] + tmp_6 * m[1][1] + tmp_11 * m[3][1]);
+        auto t3 = (tmp_5 * m[0][1] + tmp_8 * m[1][1] + tmp_11 * m[2][1]) -
+                   (tmp_4 * m[0][1] + tmp_9 * m[1][1] + tmp_10 * m[2][1]);
+
+        mat4 dst;
+
+        float d = 1.0f / (m[0][0] * t0 + m[1][0] * t1 + m[2][0] * t2 + m[3][0] * t3);
+
+        dst[0][0] = d * t0;
+        dst[0][1] = d * t1;
+        dst[0][2] = d * t2;
+        dst[0][3] = d * t3;
+        dst[1][0] = d * ((tmp_1 * m[1][0] + tmp_2 * m[2][0] + tmp_5 * m[3][0]) -
+                       (tmp_0 * m[1][0] + tmp_3 * m[2][0] + tmp_4 * m[3][0]));
+        dst[1][1] = d * ((tmp_0 * m[0][0] + tmp_7 * m[2][0] + tmp_8 * m[3][0]) -
+                       (tmp_1 * m[0][0] + tmp_6 * m[2][0] + tmp_9 * m[3][0]));
+        dst[1][2] = d * ((tmp_3 * m[0][0] + tmp_6 * m[1][0] + tmp_11 * m[3][0]) -
+                       (tmp_2 * m[0][0] + tmp_7 * m[1][0] + tmp_10 * m[3][0]));
+        dst[1][3] = d * ((tmp_4 * m[0][0] + tmp_9 * m[1][0] + tmp_10 * m[2][0]) -
+                       (tmp_5 * m[0][0] + tmp_8 * m[1][0] + tmp_11 * m[2][0]));
+        dst[2][0] = d * ((tmp_12 * m[1][3] + tmp_15 * m[2][3] + tmp_16 * m[3][3]) -
+                       (tmp_13 * m[1][3] + tmp_14 * m[2][3] + tmp_17 * m[3][3]));
+        dst[2][1] = d * ((tmp_13 * m[0][3] + tmp_18 * m[2][3] + tmp_21 * m[3][3]) -
+                       (tmp_12 * m[0][3] + tmp_19 * m[2][3] + tmp_20 * m[3][3]));
+        dst[2][2] = d * ((tmp_14 * m[0][3] + tmp_19 * m[1][3] + tmp_22 * m[3][3]) -
+                       (tmp_15 * m[0][3] + tmp_18 * m[1][3] + tmp_23 * m[3][3]));
+        dst[2][3] = d * ((tmp_17 * m[0][3] + tmp_20 * m[1][3] + tmp_23 * m[2][3]) -
+                       (tmp_16 * m[0][3] + tmp_21 * m[1][3] + tmp_22 * m[2][3]));
+        dst[3][0] = d * ((tmp_14 * m[2][2] + tmp_17 * m[3][2] + tmp_13 * m[1][2]) -
+                       (tmp_16 * m[3][2] + tmp_12 * m[1][2] + tmp_15 * m[2][2]));
+        dst[3][1] = d * ((tmp_20 * m[3][2] + tmp_12 * m[0][2] + tmp_19 * m[2][2]) -
+                       (tmp_18 * m[2][2] + tmp_21 * m[3][2] + tmp_13 * m[0][2]));
+        dst[3][2] = d * ((tmp_18 * m[1][2] + tmp_23 * m[3][2] + tmp_15 * m[0][2]) -
+                       (tmp_22 * m[3][2] + tmp_14 * m[0][2] + tmp_19 * m[1][2]));
+        dst[3][3] = d * ((tmp_22 * m[2][2] + tmp_16 * m[0][2] + tmp_21 * m[1][2]) -
+                       (tmp_20 * m[1][2] + tmp_23 * m[2][2] + tmp_17 * m[0][2]));
+        return dst;
+    }
+
+
+    inline vec3 mouse_to_world_space_ray(
+        vec2 mouse_position,
+        vec2 screen_size,
+        vec3 cam_eye,
+        vec3 cam_target,
+        vec3 cam_up,
+        float cam_fov,
+        float frustum_near,
+        float frustum_far)
+    {
+        mouse_position = (mouse_position / screen_size) * 2.0f;
+        mouse_position.x = 1.0f - mouse_position.x;
+        mouse_position.y = 1.0f - mouse_position.y;
+        mouse_position.y = mouse_position.y * tanf(cam_fov * 0.5f);
+        mouse_position.x = -mouse_position.x * tanf(cam_fov * 0.5f);
+        auto inv_proj = inverse(perspective(cam_fov, frustum_near, frustum_far, screen_size.x, screen_size.y));
+        auto inv_view = inverse(look_at(cam_eye, cam_target, cam_up));
+        auto view_cords = vec4{mouse_position.x, mouse_position.y, -1, 1};
+        view_cords = inv_proj * view_cords;
+        view_cords.z = -1.0f;
+        view_cords.w = 0.0f;
+        auto world_cords = inv_view * view_cords;
+
+        return normalize(vec3{world_cords.x, world_cords.y, world_cords.z});
     }
 
 

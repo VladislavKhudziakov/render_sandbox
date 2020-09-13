@@ -47,16 +47,16 @@ int main()
             auto x_offset = e.x - last_x;
             auto y_offset = e.y - last_y;
 
-//            cube.rotation.y += x_offset * 0.01;
-//            cube.rotation.x += y_offset * 0.01;
+            cube.rotation.y += x_offset * 0.01;
+            cube.rotation.x += y_offset * 0.01;
 
-            if (abs(x_offset) > abs(y_offset)) {
-                cube.rotation_manager.try_acquire_rotation_axis(rubiks_cube::rotation_manager::z_axis);
-                cube.rotation_manager.rotate(0, x_offset * 0.01);
-            } else {
-                cube.rotation_manager.try_acquire_rotation_axis(rubiks_cube::rotation_manager::y_axis);
-                cube.rotation_manager.rotate(0, y_offset * 0.01);
-            }
+//            if (abs(x_offset) > abs(y_offset)) {
+//                cube.rotation_manager.try_acquire_rotation_axis(rubiks_cube::rotation_manager::z_axis);
+//                cube.rotation_manager.rotate(0, x_offset * 0.01);
+//            } else {
+//                cube.rotation_manager.try_acquire_rotation_axis(rubiks_cube::rotation_manager::y_axis);
+//                cube.rotation_manager.rotate(0, y_offset * 0.01);
+//            }
         }
 
         last_x = e.x;
@@ -102,38 +102,33 @@ int main()
 
     auto pass = r->create_pass(pass_descriptor);
 
-
-    camera.position = {-10, 10, 15};
+    camera.position = {-15, 15, 15};
     camera.target_position = {0, 0, 0};
 
-    float v = 0;
     while (!window.closed()) {
         camera.update();
 
-        cube.rotation.z = v;
         cube.parent_transform = camera.get_transformation();
 
         r->encode_draw_command({.type = renderer::draw_command_type::pass, .pass = pass});
         cube.update();
+
+        auto ray = math::mouse_to_world_space_ray(
+            {float(pos.x), float(pos.y)},
+            {float(window.get_size().width), float(window.get_size().height)},
+            camera.position,
+            camera.target_position,
+            {0, 1, 0},
+            camera.fov,
+            camera.near,
+            camera.far);
+        size_t i;
+        std::cout << "ray x " << ray.x * (camera.far) << " y " << ray.y * (camera.far) << " z " << ray.z * (camera.far) << std::endl;
+        if (cube.hit({camera.position, ray * (camera.far)}, i)) {
+            std::cout << "hit! " << i << std::endl;
+        }
         cube.draw();
         window.update();
-
-        if (mouse_clicked) {
-            auto ray = math::mouse_to_world_space_ray(
-                {float(pos.x), float(pos.y)},
-                {float(window.get_size().width), float(window.get_size().height)},
-                camera.position,
-                camera.target_position,
-                {0, 1, 0},
-                camera.fov,
-                camera.near,
-                camera.far);
-
-            auto nray = math::normalize(ray);
-
-            std::cout << "ORIGINAL RAY X: " << ray.x << " Y : " << ray.y << " Z : " << ray.z << std::endl;
-//            std::cout << "NORMALIZED RAY X: " << nray.x << " Y : " << nray.y << " Z : " << nray.z << std::endl;
-        }
     }
 
     return 0;

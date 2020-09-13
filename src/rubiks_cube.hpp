@@ -5,6 +5,7 @@
 
 #include <cube.hpp>
 #include <rotation_manager.hpp>
+#include <math/ray.hpp>
 
 namespace rubiks_cube
 {
@@ -16,6 +17,8 @@ namespace rubiks_cube
         void update();
 
         void draw();
+
+        bool hit(math::ray ray, size_t& i);
 
         math::mat4 parent_transform;
 
@@ -33,6 +36,8 @@ namespace rubiks_cube
         renderer::mesh_handler m_cube_mesh;
 
         renderer::renderer* m_renderer;
+
+        math::mat4 m_transform;
 
         size_t m_size;
     };
