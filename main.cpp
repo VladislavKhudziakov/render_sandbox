@@ -28,6 +28,9 @@ int main()
             if (cube.rotation_manager.is_any_row_acquired()) {
                 cube.rotation_manager.release_row();
             }
+            if (cube.is_acquired()) {
+                cube.release();
+            }
         }
     });
 
@@ -57,9 +60,10 @@ int main()
             if (cube.rotation_manager.is_any_row_acquired()) {
                 cube.rotation_manager.rotate(-(x_axis ? x_offset : y_offset) * -0.01); // in reverse order
             } else {
-                if (!cube.hit({camera.position, ray * (camera.far - camera.near)}, face, hit_point)) {
-                    cube.rotation.y += x_offset * 0.01;
-                    cube.rotation.x += y_offset * 0.01;
+                if (cube.is_acquired()) {
+                    cube.rotate({float(x_offset) * 0.01f, float(y_offset) * 0.01f, 0.f});
+                } else if (!cube.hit({camera.position, ray * (camera.far - camera.near)}, face, hit_point)) {
+                    cube.acquire();
                 } else {
                     auto row_col = cube.get_row_col_by_hit_pos(face, hit_point);
                     auto axis = cube.get_face_rotation_axis(face);

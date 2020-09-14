@@ -98,6 +98,9 @@ rubiks_cube::rubiks_cube::rubiks_cube(renderer::renderer* renderer, size_t size)
     , rotation_manager(size)
     , m_renderer(renderer)
 {
+    if (size % 2 == 0) {
+        throw std::runtime_error("don't support even size.");
+    }
     int rubiks_cube_size = int(size);
     int x_pos = -rubiks_cube_size / 2;
     int y_pos = -rubiks_cube_size / 2;
@@ -163,7 +166,7 @@ void rubiks_cube::rubiks_cube::update()
 {
     rotation_manager.update();
 
-    auto rot_m = math::rotation_x(rotation.x) * math::rotation_y(rotation.y);
+    auto rot_m = math::rotation_x(m_rotation.x) * math::rotation_y(m_rotation.y);
     m_transform = rot_m;
 
     math::mat4 m = parent_transform * m_transform;
@@ -360,5 +363,31 @@ math::ivec2 rubiks_cube::rubiks_cube::get_face_rotation_axis(rubiks_cube::rubiks
             return {rotation_manager::axis::y, rotation_manager::axis::x};
         default:
             throw std::runtime_error("invalid axis");
+    }
+}
+
+
+void rubiks_cube::rubiks_cube::acquire()
+{
+    m_is_acquired = true;
+}
+
+
+void rubiks_cube::rubiks_cube::release()
+{
+    m_is_acquired = false;
+}
+
+
+bool rubiks_cube::rubiks_cube::is_acquired() const
+{
+    return m_is_acquired;
+}
+
+
+void rubiks_cube::rubiks_cube::rotate(math::vec3 angles)
+{
+    if (m_is_acquired) {
+        m_rotation = m_rotation + angles;
     }
 }

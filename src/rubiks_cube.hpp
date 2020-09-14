@@ -30,11 +30,12 @@ namespace rubiks_cube
         math::ivec2 get_row_col_by_hit_pos(face& face, math::vec3 hit_point);
         math::ivec2 get_face_rotation_axis(face face);
 
-        math::mat4 parent_transform;
+        void acquire();
+        void release();
+        void rotate(math::vec3);
+        bool is_acquired() const;
 
-        math::vec3 translation{0, 0, 0};
-        math::vec3 scale{1, 1, 1};
-        math::vec3 rotation{0, 0, 0};
+        math::mat4 parent_transform;
 
         rotation_manager rotation_manager;
 
@@ -48,7 +49,10 @@ namespace rubiks_cube
         renderer::renderer* m_renderer;
 
         math::mat4 m_transform;
+        math::vec3 m_rotation{0, 0, 0};
 
         size_t m_size;
+
+        bool m_is_acquired = false;
     };
 } // namespace rubiks_cube
