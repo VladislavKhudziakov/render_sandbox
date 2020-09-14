@@ -15,19 +15,30 @@ rubiks_cube::rotation_manager::rotation_manager(size_t size)
 
 void rubiks_cube::rotation_manager::update()
 {
-    assert(m_rotation_animations.size() == 1 || m_rotation_animations.size() == 0);
-
-    for (auto& anim : m_rotation_animations) {
-        auto offset = 0.05 * anim.direction;
-        if (anim.row->angle + offset >= anim.bind_point) {
-            anim.row->need_cubes_update_position = true;
-            anim.row->update_direction = round(sinf(anim.bind_point));
-            anim.row->angle_offset = anim.bind_point - anim.row->angle;
-            m_rotation_animations.pop_back();
-        } else {
-            anim.row->angle_offset = offset;
-            anim.row->angle += offset;
+    if (m_animations_queue.empty()) {
+        for (auto& rows_list : m_rows) {
+            for (auto& row : rows_list) {
+                row.need_cubes_update_position = false;
+            }
         }
+        return;
+    }
+
+    auto& anim = m_animations_queue.front();
+    auto offset = 0.05 * anim.direction;
+    if (anim.row->angle + offset >= anim.bind_point) {
+        anim.row->need_cubes_update_position = true;
+        anim.row->update_direction = anim.direction;
+
+        m_animations_queue.pop();
+
+        anim.row->angle_offset = 0;
+        anim.row->update_direction = int(round(sin(anim.bind_point)));
+        m_rows[m_acquired_axis][m_acquired_row].angle = 0;
+        m_acquired_row = uint32_t(-1);
+    } else {
+        anim.row->angle_offset = offset;
+        anim.row->angle += offset;
     }
 }
 
@@ -103,9 +114,28 @@ void rubiks_cube::rotation_manager::acquire_row(rubiks_cube::rotation_manager::a
 
 void rubiks_cube::rotation_manager::release_row()
 {
-    m_rows[m_acquired_axis][m_acquired_row].angle_offset = 0;
-    m_rows[m_acquired_axis][m_acquired_row].angle = 0;
-    m_acquired_row = uint32_t(-1);
+    auto& row = m_rows[m_acquired_axis][m_acquired_row];
+    auto& anim = m_animations_queue.emplace();
+
+    if (row.angle >= 0 && row.angle < M_PI_4) {
+        anim.direction = -1;
+        anim.bind_point = 0;
+    } else if (row.angle >= M_PI_4) {
+        anim.direction = 1;
+        anim.bind_point = M_PI_2;
+    } else if (row.angle < 0 && row.angle > -M_PI_4) {
+        anim.direction = 1;
+        anim.bind_point = 0;
+    } else {
+        anim.direction = -1;
+        anim.bind_point = -M_PI_2;
+    }
+
+    anim.row = &row;
+
+//    m_rows[m_acquired_axis][m_acquired_row].angle_offset = 0;
+//    m_rows[m_acquired_axis][m_acquired_row].angle = 0;
+//    m_acquired_row = uint32_t(-1);
 }
 
 

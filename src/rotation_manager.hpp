@@ -8,6 +8,7 @@
 #include <array>
 #include <vector>
 #include <functional>
+#include <queue>
 
 
 namespace rubiks_cube
@@ -52,7 +53,7 @@ namespace rubiks_cube
 
     private:
         std::array<std::vector<row>, 3> m_rows;
-        std::vector<rotation_animation> m_rotation_animations;
+        std::queue<rotation_animation> m_animations_queue;
         size_t m_size;
         uint32_t m_acquired_row{uint32_t(-1)};
         axis m_acquired_axis{axis::x};
