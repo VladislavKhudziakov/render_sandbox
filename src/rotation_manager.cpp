@@ -5,7 +5,7 @@
 #include <cube.hpp>
 
 rubiks_cube::rotation_manager::rotation_manager(size_t size)
-: m_size(size)
+    : m_size(size)
 {
     m_rows[axis::x].resize(size);
     m_rows[axis::y].resize(size);
@@ -16,17 +16,20 @@ rubiks_cube::rotation_manager::rotation_manager(size_t size)
 void rubiks_cube::rotation_manager::update()
 {
     if (m_animations_queue.empty()) {
-        for (auto& rows_list : m_rows) {
-            for (auto& row : rows_list) {
-                row.need_cubes_update_position = false;
-            }
+        while (!m_disable_update_rows_queue.empty()) {
+            auto* row = m_disable_update_rows_queue.back();
+            row->need_cubes_update_position = false;
+            m_disable_update_rows_queue.pop();
         }
         return;
     }
 
     auto& anim = m_animations_queue.front();
     auto offset = 0.05 * anim.direction;
-    if (anim.row->angle + offset >= anim.bind_point) {
+
+    auto animation_finished = (anim.direction < 0 ? (anim.row->angle + offset <= anim.bind_point) : (anim.row->angle + offset >= anim.bind_point));
+
+    if (animation_finished) {
         anim.row->need_cubes_update_position = true;
         anim.row->update_direction = anim.direction;
 
@@ -36,6 +39,7 @@ void rubiks_cube::rotation_manager::update()
         anim.row->update_direction = int(round(sin(anim.bind_point)));
         m_rows[m_acquired_axis][m_acquired_row].angle = 0;
         m_acquired_row = uint32_t(-1);
+        m_disable_update_rows_queue.push(anim.row);
     } else {
         anim.row->angle_offset = offset;
         anim.row->angle += offset;
@@ -60,6 +64,7 @@ void rubiks_cube::rotation_manager::rotate(float angle_offset)
             row.angle_offset = M_PI_2 - row.angle;
             row.angle = 0;
             row.need_cubes_update_position = true;
+            m_disable_update_rows_queue.emplace(&row);
         } else {
             row.angle += angle_offset;
             row.angle_offset = angle_offset;
@@ -70,6 +75,7 @@ void rubiks_cube::rotation_manager::rotate(float angle_offset)
             row.angle_offset = row.angle + M_PI_2;
             row.angle = 0;
             row.need_cubes_update_position = true;
+            m_disable_update_rows_queue.emplace(&row);
         } else {
             row.angle += angle_offset;
             row.angle_offset = angle_offset;
@@ -132,10 +138,6 @@ void rubiks_cube::rotation_manager::release_row()
     }
 
     anim.row = &row;
-
-//    m_rows[m_acquired_axis][m_acquired_row].angle_offset = 0;
-//    m_rows[m_acquired_axis][m_acquired_row].angle = 0;
-//    m_acquired_row = uint32_t(-1);
 }
 
 

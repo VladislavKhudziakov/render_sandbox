@@ -10,9 +10,6 @@ bool mouse_clicked = false;
 
 int main()
 {
-    renderer::mesh_handler mesh;
-    renderer::shader_handler shader;
-
     renderer::glfw_window window("my window", {800, 600});
     camera.width = 800;
     camera.height = 600;
@@ -58,7 +55,7 @@ int main()
             math::vec3 hit_point;
 
             if (cube.rotation_manager.is_any_row_acquired()) {
-                cube.rotation_manager.rotate((x_axis ? x_offset : y_offset) * 0.01); // in reverse order
+                cube.rotation_manager.rotate(-(x_axis ? x_offset : y_offset) * -0.01); // in reverse order
             } else {
                 if (!cube.hit({camera.position, ray * (camera.far - camera.near)}, face, hit_point)) {
                     cube.rotation.y += x_offset * 0.01;
@@ -127,8 +124,8 @@ int main()
         cube.parent_transform = camera.get_transformation();
 
         r->encode_draw_command({.type = renderer::draw_command_type::pass, .pass = pass});
-        cube.update();
 
+        cube.update();
         cube.draw();
         window.update();
     }
