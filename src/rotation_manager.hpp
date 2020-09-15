@@ -49,7 +49,7 @@ namespace rubiks_cube
         void rotate(float angle);
         bool is_any_row_acquired();
         void rotate_cube(cube& c);
-        void update();
+        void update(double delta);
 
     private:
         std::array<std::vector<row>, 3> m_rows;

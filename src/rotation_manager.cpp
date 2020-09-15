@@ -13,7 +13,7 @@ rubiks_cube::rotation_manager::rotation_manager(size_t size)
 }
 
 
-void rubiks_cube::rotation_manager::update()
+void rubiks_cube::rotation_manager::update(double delta_time)
 {
     if (m_animations_queue.empty()) {
         while (!m_disable_update_rows_queue.empty()) {
@@ -25,7 +25,7 @@ void rubiks_cube::rotation_manager::update()
     }
 
     auto& anim = m_animations_queue.front();
-    auto offset = 0.05 * anim.direction;
+    auto offset = delta_time * 10.0f * anim.direction;
 
     auto animation_finished = (anim.direction < 0 ? (anim.row->angle + offset <= anim.bind_point) : (anim.row->angle + offset >= anim.bind_point));
 

@@ -70,6 +70,8 @@ namespace renderer
         virtual void register_resize_handler(resize_handler handler) = 0;
         virtual void register_key_handler(keyboard_handler handler) = 0;
 
+        virtual double get_time() const = 0;
+
         virtual misc::size get_view_size() = 0;
 
         misc::size get_size();

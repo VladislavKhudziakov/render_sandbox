@@ -225,3 +225,9 @@ void renderer::glfw_window::key_callback(GLFWwindow* window, int key_code, int s
         handler({key_code, event_action});
     }
 }
+
+
+double renderer::glfw_window::get_time() const
+{
+    return glfwGetTime();
+}

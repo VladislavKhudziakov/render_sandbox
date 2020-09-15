@@ -166,13 +166,13 @@ void rubiks_cube::rubiks_cube::draw()
 }
 
 
-void rubiks_cube::rubiks_cube::update()
+void rubiks_cube::rubiks_cube::update(double delta_time)
 {
     // i know that this is BAD solution. But deadline is coming...
     upload_cube_faces_texture_data();
     m_renderer->load_texture_data(m_cubes_faces_texture, {6, m_cubes.size(), 1}, m_faces_texture_data.data());
 
-    rotation_manager.update();
+    rotation_manager.update(delta_time);
 
     auto rot_m = math::rotation_x(m_rotation.x) * math::rotation_y(m_rotation.y);
     m_transform = rot_m;

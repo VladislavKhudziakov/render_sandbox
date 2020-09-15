@@ -8,6 +8,8 @@
 renderer::camera camera{};
 bool mouse_clicked = false;
 
+// added limitations because of limits for ubo size
+// so... we can pack matrices into textures, but... deadline is coming
 constexpr auto MIN_CUBE_SIZE = 3;
 constexpr auto MAX_CUBE_SIZE = 7;
 
@@ -112,9 +114,18 @@ int main()
         camera.height = e.height;
     });
 
-    window.register_mouse_scroll_callback([](::renderer::scroll_event e) {
+    window.register_mouse_scroll_callback([&cube](::renderer::scroll_event e) {
         auto dir = math::normalize(camera.target_position - camera.position);
-        camera.position = camera.position + dir * e.y_offset;
+        auto sz = float(cube->get_size());
+        auto cube_diagonal = math::length(math::vec3{sz, sz, sz});
+        auto new_pos = camera.position + dir * e.y_offset;
+        auto new_len = math::length(camera.target_position - new_pos);
+
+        if (new_len <= cube_diagonal + 0.5) {
+            return;
+        }
+
+        camera.position = new_pos;
     });
 
     renderer::texture_descriptor color_attachment_tex_descriptor{
@@ -147,17 +158,24 @@ int main()
     camera.position = {-10, 10, -10};
     camera.target_position = {0, 0, 0};
 
+    double last_time = 0;
+
     while (!window.closed()) {
         if (cube == nullptr) {
             continue;
         }
+
+        auto curr_time = window.get_time();
+        double delta = curr_time - last_time;
+        last_time = curr_time;
+
         camera.update();
 
         cube->parent_transform = camera.get_transformation();
 
         r->encode_draw_command({.type = renderer::draw_command_type::pass, .pass = pass});
 
-        cube->update();
+        cube->update(delta);
         cube->draw();
         window.update();
     }

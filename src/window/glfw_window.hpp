@@ -35,6 +35,8 @@ namespace renderer
 
         void get_pixel_color(void* data, size_t x, size_t y, texture_format fmt, data_type type);
 
+        double get_time() const override;
+
     private:
         static void mouse_pos_callback(GLFWwindow* window, double x, double y);
         static void mouse_button_callback(GLFWwindow*, int button, int action, int mods);

@@ -30,7 +30,7 @@ namespace rubiks_cube
         rubiks_cube& operator=(rubiks_cube&&) = delete;
         ~rubiks_cube();
 
-        void update();
+        void update(double delta_time);
         void draw();
         bool hit(math::ray ray, face& face, math::vec3& hit_point);
         math::ivec2 get_row_col_by_hit_pos(face& face, math::vec3 hit_point);
