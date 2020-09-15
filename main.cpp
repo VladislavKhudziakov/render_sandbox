@@ -4,6 +4,7 @@
 
 #include <camera.hpp>
 #include <rubiks_cube.hpp>
+#include <quad.hpp>
 
 renderer::camera camera{};
 bool mouse_clicked = false;
@@ -162,6 +163,11 @@ int main()
 
     double last_time = 0;
 
+    rubiks_cube::indication_quad quad(r);
+
+    quad.scale = {0.3, 0.3, 0.3};
+    quad.position = {0.75, 0.75};
+
     while (!window.closed()) {
         if (cube == nullptr) {
             continue;
@@ -178,8 +184,11 @@ int main()
         r->encode_draw_command({.type = renderer::draw_command_type::pass, .pass = pass});
 
         cube->update(delta);
+
         if (cube->is_assembled()) {
-            std::cout << "assebled" << std::endl;
+            quad.update();
+            quad.draw();
+//            std::cout << "assebled" << std::endl;
         }
         cube->draw();
         window.update();
