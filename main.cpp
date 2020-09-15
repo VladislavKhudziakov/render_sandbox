@@ -35,6 +35,7 @@ int main()
                         curr_cube_size += 2;
                         cube.reset();
                         cube = std::make_unique<::rubiks_cube::rubiks_cube>(r, curr_cube_size);
+                        camera.position = {-10, 10, -10};
                     }
                     break;
                 case KEY_DOWN:
@@ -42,6 +43,7 @@ int main()
                         curr_cube_size -= 2;
                         cube.reset();
                         cube = std::make_unique<::rubiks_cube::rubiks_cube>(r, curr_cube_size);
+                        camera.position = {-10, 10, -10};
                     }
             }
         }
