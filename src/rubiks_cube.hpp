@@ -41,6 +41,8 @@ namespace rubiks_cube
         void rotate(math::vec3);
         bool is_acquired() const;
 
+        bool is_assembled() const;
+
         size_t get_size();
 
         math::mat4 parent_transform;

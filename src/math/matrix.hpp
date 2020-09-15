@@ -80,18 +80,18 @@ namespace math
         template<typename X, typename Y>
         using div_result_t = typename div_result<X, Y>::type;
 
-        template<size_t i>
-        struct for_i
-        {
-            template<template<size_t> typename MetaFunc, typename... Args>
-            inline static void call(Args&&... args)
-            {
-                MetaFunc<i>::call(std::forward<Args>(args)...);
-                if constexpr (i != 0) {
-                    for_i<i - 1>::template call<MetaFunc>(std::forward<Args>(args)...);
-                }
-            }
-        };
+//        template<size_t i>
+//        struct for_i
+//        {
+//            template<template<size_t> typename MetaFunc, typename... Args>
+//            inline static void call(Args&&... args)
+//            {
+//                MetaFunc<i>::call(std::forward<Args>(args)...);
+//                if constexpr (i != 0) {
+//                    for_i<i - 1>::template call<MetaFunc>(std::forward<Args>(args)...);
+//                }
+//            }
+//        };
 
 
         template<size_t Col>

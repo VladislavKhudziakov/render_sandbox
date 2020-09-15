@@ -488,3 +488,83 @@ size_t rubiks_cube::rubiks_cube::get_size()
 {
     return m_size;
 }
+
+
+bool rubiks_cube::rubiks_cube::is_assembled() const
+{
+    const auto min_pos = -int(m_size) / 2;
+    const auto max_pos = int(m_size) / 2;
+
+    size_t neg_x_iters = 0;
+    size_t pos_x_iters = 0;
+
+    math::ubvec4 last_neg_x_color;
+    math::ubvec4 last_pos_x_color;
+
+    size_t neg_y_iters = 0;
+    size_t pos_y_iters = 0;
+
+    math::ubvec4 last_neg_y_color;
+    math::ubvec4 last_pos_y_color;
+
+    size_t neg_z_iters = 0;
+    size_t pos_z_iters = 0;
+
+    math::ubvec4 last_neg_z_color;
+    math::ubvec4 last_pos_z_color;
+
+    auto check_cube_face_color = [](math::vec4 normal, const cube& cube, math::ubvec4& check_color, size_t& iterations_counter) {
+        for (const auto& face : cube.faces) {
+            if (face.normal == normal) {
+                if (iterations_counter == 0) {
+                    check_color = face.color;
+                }
+                iterations_counter++;
+                return face.color == check_color;
+            }
+        }
+        return false;
+    };
+
+    for (auto& cube : m_cubes) {
+        auto pos = cube.get_position();
+
+        if (pos.x == min_pos) {
+            if (!check_cube_face_color({-1, 0, 0, 0}, cube, last_neg_x_color, neg_x_iters)) {
+                return false;
+            }
+        }
+
+        if (pos.x == max_pos) {
+            if (!check_cube_face_color({1, 0, 0, 0}, cube, last_pos_x_color, pos_x_iters)) {
+                return false;
+            }
+        }
+
+        if (pos.y == min_pos) {
+            if (!check_cube_face_color({0, -1, 0, 0}, cube, last_neg_y_color, neg_y_iters)) {
+                return false;
+            }
+        }
+
+        if (pos.y == max_pos) {
+            if (!check_cube_face_color({0, 1, 0, 0}, cube, last_pos_y_color, pos_y_iters)) {
+                return false;
+            }
+        }
+
+        if (pos.z == min_pos) {
+            if (!check_cube_face_color({0, 0, -1, 0}, cube, last_neg_z_color, neg_z_iters)) {
+                return false;
+            }
+        }
+
+        if (pos.z == min_pos) {
+            if (!check_cube_face_color({0, 0, 1, 0}, cube, last_pos_z_color, pos_z_iters)) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}

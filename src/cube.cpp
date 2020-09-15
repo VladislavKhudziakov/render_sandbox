@@ -5,16 +5,15 @@
 
 rubiks_cube::cube::cube(math::ivec3 translation)
     : m_position(translation)
-    , m_translation{float(translation.x), float(translation.y), float(translation.z)}
 {
 }
 
 
 math::mat4 rubiks_cube::cube::get_transformation()
 {
-    auto rot_x = m_x_rotator(m_rotation[x_axis]);
-    auto rot_y = m_y_rotator(m_rotation[y_axis]);
-    auto rot_z = m_z_rotator(m_rotation[z_axis]);
+    auto rot_x = math::rotation_x(m_rotation[x_axis]);
+    auto rot_y = math::rotation_y(m_rotation[y_axis]);
+    auto rot_z = math::rotation_z(m_rotation[z_axis]);
 
     return (rot_x * rot_y * rot_z) * math::translation({float(m_position.x), float(m_position.y), float(m_position.z)});
 }
@@ -57,7 +56,7 @@ void rubiks_cube::cube::update_position(uint32_t axis, int direction)
 }
 
 
-math::ivec3 rubiks_cube::cube::get_position()
+math::ivec3 rubiks_cube::cube::get_position() const
 {
     return m_position;
 }

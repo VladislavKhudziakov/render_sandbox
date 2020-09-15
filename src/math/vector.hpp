@@ -78,6 +78,20 @@ namespace math
         };
 
 
+        template<size_t i>
+        struct for_i
+        {
+            template<template<size_t> typename MetaFunc, typename... Args>
+            inline static void call(Args&&... args)
+            {
+                MetaFunc<i>::call(std::forward<Args>(args)...);
+                if constexpr (i != 0) {
+                    for_i<i - 1>::template call<MetaFunc>(std::forward<Args>(args)...);
+                }
+            }
+        };
+
+
         template<size_t index>
         struct transform
         {
@@ -119,6 +133,21 @@ namespace math
                     return LhsGet<0>::get(lhs) * RhsGet<0>::get(rhs);
                 } else {
                     return LhsGet<index>::get(lhs) * RhsGet<index>::get(rhs) + dot_product<index - 1>::template calculate<LhsGet, RhsGet>(lhs, rhs);
+                }
+            }
+        };
+
+        template<size_t index>
+        struct vectors_equality
+        {
+            template<typename DataType, size_t Size>
+            inline static bool equals(vec<Size, DataType>& v1, vec<Size, DataType>& v2)
+            {
+                static_assert(index <= Size - 1);
+                if constexpr (index == 0) {
+                    return vector_element<0>::get(v1) == vector_element<0>::get(v2);
+                } else {
+                    return vector_element<index>::get(v1) == vector_element<index>::get(v2) && vectors_equality<index - 1>::equals(v1, v2);
                 }
             }
         };
@@ -272,6 +301,20 @@ namespace math
 
         return v1;
     }
+
+
+    template<typename DataType, size_t size>
+    bool operator==(vec<size, DataType> v1, vec<size, DataType> v2)
+    {
+        return detail::vectors_equality<size - 1>::equals(v1, v2);
+    }
+
+    template<typename DataType, size_t size>
+    bool operator!=(vec<size, DataType> v1, vec<size, DataType> v2)
+    {
+        return !(v1 == v2);
+    }
+
 
 
     template<typename DataType, size_t size>

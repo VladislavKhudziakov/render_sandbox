@@ -178,6 +178,9 @@ int main()
         r->encode_draw_command({.type = renderer::draw_command_type::pass, .pass = pass});
 
         cube->update(delta);
+        if (cube->is_assembled()) {
+            std::cout << "assebled" << std::endl;
+        }
         cube->draw();
         window.update();
     }
