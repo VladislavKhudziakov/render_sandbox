@@ -44,7 +44,7 @@ namespace rubiks_cube
         void upload_cube_faces_texture_data();
         void create_cubes_colors_texture();
 
-        std::vector<math::vec4> m_faces_texture_data;
+        std::vector<math::ubvec4> m_faces_texture_data;
 
         std::vector<cube> m_cubes;
 

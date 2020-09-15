@@ -11,7 +11,7 @@ namespace rubiks_cube
     struct face
     {
         math::vec4 normal;
-        math::vec4 color;
+        math::ubvec4 color;
     };
 
     class cube

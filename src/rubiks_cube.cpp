@@ -168,9 +168,11 @@ void rubiks_cube::rubiks_cube::draw()
 
 void rubiks_cube::rubiks_cube::update()
 {
-    rotation_manager.update();
+    // i know that this is BAD solution. But deadline is coming...
     upload_cube_faces_texture_data();
     m_renderer->load_texture_data(m_cubes_faces_texture, {6, m_cubes.size(), 1}, m_faces_texture_data.data());
+
+    rotation_manager.update();
 
     auto rot_m = math::rotation_x(m_rotation.x) * math::rotation_y(m_rotation.y);
     m_transform = rot_m;
@@ -406,7 +408,7 @@ void rubiks_cube::rubiks_cube::create_cubes_colors_texture()
     auto end = begin + m_faces_texture_data.size() * sizeof(math::vec4);
 
     renderer::texture_descriptor descriptor{
-        .pixels_data_type = renderer::data_type::f32,
+        .pixels_data_type = renderer::data_type::u8,
         .format = renderer::texture_format::rgba,
         .type = renderer::texture_type::d2,
         .size = {
@@ -424,12 +426,12 @@ void rubiks_cube::rubiks_cube::get_faces_color_by_position(cube& cube, math::ive
     const auto min_pos = -int(m_size) / 2;
     const auto max_pos = int(m_size) / 2;
 
-    cube.faces[0].color = {1, 0, 0, 1};
-    cube.faces[1].color = {0, 1, 0, 1};
-    cube.faces[2].color = {0, 0, 1, 1};
-    cube.faces[3].color = {1, 1, 0, 1};
-    cube.faces[4].color = {1, 0.5, 0, 1};
-    cube.faces[5].color = {1, 1, 1, 1};
+    cube.faces[0].color = {255, 0, 0, 255};
+    cube.faces[1].color = {0, 255, 0, 255};
+    cube.faces[2].color = {0, 0, 255, 255};
+    cube.faces[3].color = {255, 255, 0, 255};
+    cube.faces[4].color = {255, 175, 0, 255};
+    cube.faces[5].color = {255, 255, 255, 255};
 }
 
 
