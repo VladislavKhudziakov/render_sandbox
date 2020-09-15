@@ -24,26 +24,15 @@ namespace rubiks_cube
             z_axis
         };
 
-        std::array<face, 6> faces {
+        std::array<face, 6> faces{
             face{
                 .normal = {1, 0, 0, 0},
             },
-            {
-                .normal = {-1, 0, 0, 0}
-            },
-            {
-                .normal = {0, 1, 0, 0}
-            },
-            {
-                .normal = {0, -1, 0, 0}
-            },
-            {
-                .normal = {0, 0, 1, 0}
-            },
-            {
-                .normal = {0, 0, -1, 0}
-            }
-        };
+            {.normal = {-1, 0, 0, 0}},
+            {.normal = {0, 1, 0, 0}},
+            {.normal = {0, -1, 0, 0}},
+            {.normal = {0, 0, 1, 0}},
+            {.normal = {0, 0, -1, 0}}};
 
         math::vec4 color{0, 0, 0, 0};
 

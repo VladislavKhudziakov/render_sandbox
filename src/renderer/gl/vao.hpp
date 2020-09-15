@@ -31,7 +31,7 @@ namespace renderer::gl
                 return glDeleteVertexArrays(1, handler);
             }
         };
-    }
+    } // namespace detail
 
 
     class vao
@@ -42,11 +42,11 @@ namespace renderer::gl
         void draw_instanced(uint32_t instances_count);
         void bind();
         void unbind();
+
     private:
         raii_storage<detail::vao_create_policy, detail::vao_destroy_policy> m_handler;
         size_t m_indices_count{0};
         size_t m_vertices_count{0};
         GLenum m_indices_format{0};
     };
-}
-
+} // namespace renderer::gl

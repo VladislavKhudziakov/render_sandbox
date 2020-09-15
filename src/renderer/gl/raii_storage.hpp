@@ -12,7 +12,7 @@ namespace renderer::gl
     class raii_storage
     {
     public:
-        template<typename ...Args>
+        template<typename... Args>
         explicit raii_storage(Args&&... args)
         {
             CreatePolicy::create(&m_handler, std::forward<Args>(args)...);
