@@ -40,11 +40,19 @@ namespace rubiks_cube
         rotation_manager rotation_manager;
 
     private:
+        void get_faces_color_by_position(cube&, math::ivec3 pos);
+        void upload_cube_faces_texture_data();
+        void create_cubes_colors_texture();
+
+        std::vector<math::vec4> m_faces_texture_data;
+
         std::vector<cube> m_cubes;
 
         renderer::shader_handler m_draw_shader;
         renderer::parameters_list_handler m_params_list;
         renderer::mesh_handler m_cube_mesh;
+        renderer::texture_handler m_cubes_faces_texture;
+        renderer::texture_handler m_frame_texture;
 
         renderer::renderer* m_renderer;
 

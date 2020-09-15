@@ -75,7 +75,7 @@ void renderer::gl::texture::load_2d_data(const ::renderer::texture_descriptor& d
     if (descriptor.size.length == 1) {
         glTexImage2D(m_gl_type, 0, int_fmt, descriptor.size.width, descriptor.size.height, 0, fmt, type, data_ptr);
     } else {
-        glTexImage3D( m_gl_type, 0, int_fmt, descriptor.size.width, descriptor.size.height, descriptor.size.length, 0, fmt, type, data_ptr);
+        glTexImage3D(m_gl_type, 0, int_fmt, descriptor.size.width, descriptor.size.height, descriptor.size.length, 0, fmt, type, data_ptr);
     }
 }
 
@@ -103,7 +103,7 @@ void renderer::gl::texture::load_cube_data(const ::renderer::texture_descriptor&
     auto* data_ptr = descriptor.pixels.empty() ? nullptr : descriptor.pixels.data();
 
     for (size_t i = 0; i < 6; ++i, data_ptr += img_size) {
-        glTexImage2D( GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, int_fmt, descriptor.size.width, descriptor.size.height, 0, fmt, texture_type, data_ptr);
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, int_fmt, descriptor.size.width, descriptor.size.height, 0, fmt, texture_type, data_ptr);
     }
 }
 
@@ -123,4 +123,11 @@ void renderer::gl::texture::resize(const ::renderer::texture_size& size)
     const auto [type, int_fmt, fmt] = m_storage_data;
     ASSERT(m_type == ::renderer::texture_type::attachment);
     glTexImage2D(m_gl_type, 0, int_fmt, size.width, size.height, 0, fmt, type, nullptr);
+}
+
+
+void renderer::gl::texture::load(::renderer::texture_size size, void* data_ptr)
+{
+    const auto [type, int_fmt, fmt] = m_storage_data;
+    glTexImage2D(m_gl_type, 0, int_fmt, size.width, size.height, 0, fmt, type, data_ptr);
 }

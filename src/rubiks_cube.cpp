@@ -2,6 +2,8 @@
 
 #include "rubiks_cube.hpp"
 
+#include <misc/images_loader.hpp>
+
 #include <sstream>
 
 
@@ -17,17 +19,18 @@ layout (std140) uniform instance_data
 {
     mat4 mvp)"
             << "[" << cubes_count << "];\n"
-            << "\tvec4 cube_color"
-            << "[" << cubes_count << "];\n"
             << R"(
 };
+
+
+uniform sampler2D s_faces_colors;
 
 out vec4 v_color;
 
 void main()
 {
     gl_Position = mvp[gl_InstanceID] * vec4(attr_pos, 1.);
-    v_color = cube_color[gl_InstanceID];
+    v_color = texelFetch(s_faces_colors, ivec2(gl_VertexID / 6, gl_InstanceID), 0);
 })";
         return oss.str();
     }
@@ -111,7 +114,6 @@ rubiks_cube::rubiks_cube::rubiks_cube(renderer::renderer* renderer, size_t size)
 
     renderer::parameters_list_descriptor params_list_descriptor{
         .parameters = {size * size * size, renderer::parameter_type::mat4}};
-    params_list_descriptor.parameters.reserve(params_list_descriptor.parameters.size() + size * size * size);
 
     for (int x = 0; x < size; ++x) {
         for (int y = 0; y < size; ++y) {
@@ -119,8 +121,8 @@ rubiks_cube::rubiks_cube::rubiks_cube(renderer::renderer* renderer, size_t size)
                 auto& new_cube = m_cubes.emplace_back(
                     math::ivec3{int32_t(x_pos), int32_t(y_pos), int32_t(z_pos)});
                 new_cube.color = {float(x) / float(m_size), float(y) / float(m_size), float(z) / float(m_size), 1.f};
+                get_faces_color_by_position(new_cube, new_cube.get_position());
                 z_pos += stride;
-                params_list_descriptor.parameters.emplace_back(::renderer::parameter_type::vec4);
             }
             z_pos = -rubiks_cube_size / 2;
             y_pos += stride;
@@ -128,6 +130,8 @@ rubiks_cube::rubiks_cube::rubiks_cube(renderer::renderer* renderer, size_t size)
         y_pos = -rubiks_cube_size / 2;
         x_pos += stride;
     }
+
+    create_cubes_colors_texture();
 
     m_params_list = m_renderer->create_parameters_list(params_list_descriptor);
 
@@ -141,7 +145,7 @@ rubiks_cube::rubiks_cube::rubiks_cube(renderer::renderer* renderer, size_t size)
                 .name = renderer::shader_stage_name::fragment,
                 .code = fss,
             }},
-        .samplers = {},
+        .samplers = {{"s_faces_colors", m_cubes_faces_texture}},
         .parameters = {{"instance_data", m_params_list}},
         .state = {.depth_test = renderer::depth_test_mode::less_eq}};
 
@@ -165,6 +169,8 @@ void rubiks_cube::rubiks_cube::draw()
 void rubiks_cube::rubiks_cube::update()
 {
     rotation_manager.update();
+    upload_cube_faces_texture_data();
+    m_renderer->load_texture_data(m_cubes_faces_texture, {6, m_cubes.size(), 1}, m_faces_texture_data.data());
 
     auto rot_m = math::rotation_x(m_rotation.x) * math::rotation_y(m_rotation.y);
     m_transform = rot_m;
@@ -176,8 +182,6 @@ void rubiks_cube::rubiks_cube::update()
         rotation_manager.rotate_cube(cube);
         auto cube_transform = math::transpose(m * cube.get_transformation());
         m_renderer->set_parameter_data(m_params_list, i, &cube_transform[0][0]);
-        auto index = m_size * m_size * m_size + i;
-        m_renderer->set_parameter_data(m_params_list, index, &cube.color.x);
     }
 }
 
@@ -389,5 +393,56 @@ void rubiks_cube::rubiks_cube::rotate(math::vec3 angles)
 {
     if (m_is_acquired) {
         m_rotation = m_rotation + angles;
+    }
+}
+
+
+void rubiks_cube::rubiks_cube::create_cubes_colors_texture()
+{
+    m_faces_texture_data.resize(6 * m_cubes.size());
+    upload_cube_faces_texture_data();
+
+    auto begin = reinterpret_cast<uint8_t*>(m_faces_texture_data.data());
+    auto end = begin + m_faces_texture_data.size() * sizeof(math::vec4);
+
+    renderer::texture_descriptor descriptor{
+        .pixels_data_type = renderer::data_type::f32,
+        .format = renderer::texture_format::rgba,
+        .type = renderer::texture_type::d2,
+        .size = {
+            .width = 6,
+            .height = m_cubes.size(),
+            .length = 1},
+        .pixels = {begin, end}};
+
+    m_cubes_faces_texture = m_renderer->create_texture(descriptor);
+}
+
+
+void rubiks_cube::rubiks_cube::get_faces_color_by_position(cube& cube, math::ivec3 pos)
+{
+    const auto min_pos = -int(m_size) / 2;
+    const auto max_pos = int(m_size) / 2;
+
+    cube.faces[0].color = {1, 0, 0, 1};
+    cube.faces[1].color = {0, 1, 0, 1};
+    cube.faces[2].color = {0, 0, 1, 1};
+    cube.faces[3].color = {1, 1, 0, 1};
+    cube.faces[4].color = {1, 0.5, 0, 1};
+    cube.faces[5].color = {1, 1, 1, 1};
+}
+
+
+void rubiks_cube::rubiks_cube::upload_cube_faces_texture_data()
+{
+    for (int i = 0; i < m_cubes.size(); ++i) {
+        auto& cube = m_cubes[i];
+
+        for (const auto& face : cube.faces) {
+            auto index = abs(face.normal.x) > 0 ? face.normal.x * 0.5 + 0.5 : 0;
+            index += abs(face.normal.y) > 0 ? 2 + face.normal.y * 0.5 + 0.5 : 0;
+            index += abs(face.normal.z) > 0 ? 4 + face.normal.z * 0.5 + 0.5 : 0;
+            m_faces_texture_data[i * 6 + index] = face.color;
+        }
     }
 }

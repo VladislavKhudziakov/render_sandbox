@@ -113,6 +113,10 @@ void rubiks_cube::rotation_manager::rotate_cube(rubiks_cube::cube& c)
 
 void rubiks_cube::rotation_manager::acquire_row(rubiks_cube::rotation_manager::axis axis, uint32_t index)
 {
+    if (index < 0 || index >= m_size) {
+        return;
+    }
+
     m_acquired_row = index;
     m_acquired_axis = axis;
 }

@@ -22,7 +22,6 @@ int main()
             mouse_clicked = true;
         }
 
-
         if (e.action == ::renderer::mouse_click_event::action_type::release && e.button == ::renderer::mouse_click_event::button_type::left) {
             mouse_clicked = false;
             if (cube.rotation_manager.is_any_row_acquired()) {
@@ -72,8 +71,6 @@ int main()
                     auto axis_index = x_axis ? axis.x : axis.y;
 
                     cube.rotation_manager.acquire_row(rubiks_cube::rotation_manager::axis(axis_index), row_index);
-                    std::cout << "axis " << axis_index << std::endl;
-                    std::cout << "row_col x: " << row_col.x << " y: " << row_col.y << std::endl;
                 }
             }
         }

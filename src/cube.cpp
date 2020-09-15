@@ -3,20 +3,20 @@
 #include "cube.hpp"
 
 
-
 rubiks_cube::cube::cube(math::ivec3 translation)
-: m_position(translation)
+    : m_position(translation)
+    , m_translation{float(translation.x), float(translation.y), float(translation.z)}
 {
 }
 
 
 math::mat4 rubiks_cube::cube::get_transformation()
 {
-    auto rot_x = math::rotation_x(m_rotation[x_axis]);
-    auto rot_y = math::rotation_y(m_rotation[y_axis]);
-    auto rot_z = math::rotation_z(m_rotation[z_axis]);
+    auto rot_x = m_x_rotator(m_rotation[x_axis]);
+    auto rot_y = m_y_rotator(m_rotation[y_axis]);
+    auto rot_z = m_z_rotator(m_rotation[z_axis]);
 
-    return rot_x * rot_y * rot_z * math::translation({float(m_position.x), float(m_position.y), float(m_position.z)});
+    return (rot_x * rot_y * rot_z) * math::translation({float(m_position.x), float(m_position.y), float(m_position.z)});
 }
 
 
@@ -43,6 +43,13 @@ void rubiks_cube::cube::update_position(uint32_t axis, int direction)
     m_position.x = round(t.x);
     m_position.y = round(t.y);
     m_position.z = round(t.z);
+
+    for (auto& face : faces) {
+        auto new_normal = rotation * face.normal;
+        face.normal.x = round(new_normal.x);
+        face.normal.y = round(new_normal.y);
+        face.normal.z = round(new_normal.z);
+    }
 
     m_rotation[x_axis] = 0;
     m_rotation[y_axis] = 0;

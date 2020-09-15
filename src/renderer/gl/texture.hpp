@@ -44,6 +44,8 @@ namespace renderer::gl
 
         void resize(const ::renderer::texture_size&);
 
+        void load(::renderer::texture_size, void*);
+
     private:
         void load_2d_data(const texture_descriptor&);
         void load_cube_data(const texture_descriptor&);

@@ -469,6 +469,35 @@ namespace math
         return mat;
     }
 
+    inline mat4 rotationXYZ(float angle, vec3 axis) {
+        mat4 mat;
+        float s = sinf(angle);
+        float c = cosf(angle);
+        float oc = 1.0f - c;
+
+        mat[0][0] = oc * axis.x * axis.x + c;
+        mat[0][1] = oc * axis.x * axis.y + axis.z * s;
+        mat[0][2] = oc * axis.z * axis.x - axis.y * s;
+        mat[0][3] = 0;
+
+        mat[1][0] = oc * axis.x * axis.y - axis.z * s;
+        mat[1][1] = oc * axis.y * axis.y + c;
+        mat[1][2] = oc * axis.y * axis.z + axis.x * s;
+        mat[1][3] = 0;
+
+        mat[2][0] = oc * axis.z * axis.x + axis.y * s;
+        mat[2][1] = oc * axis.y * axis.z - axis.x * s;
+        mat[2][2] = oc * axis.z * axis.z + c;
+        mat[2][3] = 0;
+
+        mat[3][0] = 0;
+        mat[3][1] = 0;
+        mat[3][2] = 0;
+        mat[3][3] = 1;
+
+        return mat;
+    }
+
     inline mat4 translation(vec3 t)
     {
         mat4 mat;

@@ -216,6 +216,7 @@ namespace renderer
 
         virtual texture_handler create_texture(const texture_descriptor&) = 0;
         virtual void destroy_texture(texture_handler) = 0;
+        virtual void load_texture_data(texture_handler, texture_size, void*) = 0;
 
         virtual parameters_list_handler create_parameters_list(const parameters_list_descriptor&) = 0;
         virtual void destroy_parameters_list(parameters_list_handler) = 0;

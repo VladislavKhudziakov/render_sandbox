@@ -39,7 +39,7 @@ namespace renderer::gl
         {
             if (!static_usage) {
                 bind_guard bind(*this);
-                glBufferData( GL_UNIFORM_BUFFER, size, nullptr, GL_DYNAMIC_DRAW );
+                glBufferData(BufferType, size, nullptr, GL_DYNAMIC_DRAW);
             }
         }
 
@@ -57,7 +57,7 @@ namespace renderer::gl
         void load_data(const void* data)
         {
             if constexpr (!static_usage) {
-                glBufferSubData(BufferType, 0, (GLsizeiptr)m_storage_size, data);
+                glBufferSubData(BufferType, 0, (GLsizeiptr) m_storage_size, data);
             } else {
                 glBufferData(BufferType, m_storage_size, data, GL_STATIC_DRAW);
             }

@@ -53,7 +53,7 @@ void renderer::gl::renderer::update(float time)
 {
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT, viewport);
-    GLint  main_fb;
+    GLint main_fb;
     glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &main_fb);
 
     glClearColor(0, 0, 0, 1);
@@ -256,4 +256,13 @@ void renderer::gl::renderer::destroy_pass(::renderer::pass_handler handler)
 void renderer::gl::renderer::resize_pass(::renderer::pass_handler handler, size_t w, size_t h)
 {
     m_passes[handler].resize(w, h, m_textures);
+}
+
+
+void renderer::gl::renderer::load_texture_data(
+    ::renderer::texture_handler handler,
+    ::renderer::texture_size size,
+    void* data)
+{
+    m_textures[handler].load(size, data);
 }

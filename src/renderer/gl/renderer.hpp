@@ -24,6 +24,7 @@ namespace renderer::gl
 
         texture_handler create_texture(const texture_descriptor& descriptor) override;
         void destroy_texture(texture_handler handler) override;
+        void load_texture_data(texture_handler handler, texture_size size, void* pVoid) override;
 
         ::renderer::parameters_list_handler create_parameters_list(const parameters_list_descriptor& descriptor) override;
         void set_parameter_data(::renderer::parameters_list_handler, uint32_t parameter_index, void* data) override;

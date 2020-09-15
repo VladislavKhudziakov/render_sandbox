@@ -82,9 +82,6 @@ void renderer::gl::vao::draw_instanced(uint32_t instances_count)
     if (m_indices_count > 0) {
         glDrawElementsInstanced(GL_TRIANGLES, m_indices_count, m_indices_format, reinterpret_cast<void*>(0), instances_count);
     } else {
-        assert(glGetError() == GL_NO_ERROR);
         glDrawArraysInstanced(GL_TRIANGLES, 0, m_vertices_count, instances_count);
-        auto err = glGetError();
-        assert(err == GL_NO_ERROR);
     }
 }
