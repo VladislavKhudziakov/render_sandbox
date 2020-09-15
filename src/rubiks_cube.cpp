@@ -426,12 +426,38 @@ void rubiks_cube::rubiks_cube::get_faces_color_by_position(cube& cube, math::ive
     const auto min_pos = -int(m_size) / 2;
     const auto max_pos = int(m_size) / 2;
 
-    cube.faces[0].color = {255, 0, 0, 255};
-    cube.faces[1].color = {0, 255, 0, 255};
-    cube.faces[2].color = {0, 0, 255, 255};
-    cube.faces[3].color = {255, 255, 0, 255};
-    cube.faces[4].color = {255, 175, 0, 255};
-    cube.faces[5].color = {255, 255, 255, 255};
+    if (pos.x == min_pos) {
+        cube.faces[0].color = {255, 0, 0, 255};
+        cube.faces[1].color = {0, 0, 0, 255};
+    } else if (pos.x == max_pos) {
+        cube.faces[0].color = {0, 0, 0, 255};
+        cube.faces[1].color = {0, 255, 0, 255};
+    } else {
+        cube.faces[0].color = {0, 0, 0, 255};
+        cube.faces[1].color = {0, 0, 0, 255};
+    }
+
+    if (pos.y == min_pos) {
+        cube.faces[2].color = {0, 0, 255, 255};
+        cube.faces[3].color = {0, 0, 0, 255};
+    } else if (pos.y == max_pos) {
+        cube.faces[2].color = {0, 0, 0, 255};
+        cube.faces[3].color = {255, 255, 0, 255};
+    } else {
+        cube.faces[2].color = {0, 0, 0, 255};
+        cube.faces[3].color = {0, 0, 0, 255};
+    }
+
+    if (pos.z == min_pos) {
+        cube.faces[4].color = {255, 175, 0, 255};
+        cube.faces[5].color = {0, 0, 0, 255};
+    } else if (pos.z == max_pos) {
+        cube.faces[4].color = {0, 0, 0, 255};
+        cube.faces[5].color = {255, 255, 255, 255};
+    } else {
+        cube.faces[4].color = {0, 0, 0, 255};
+        cube.faces[5].color = {0, 0, 0, 255};
+    }
 }
 
 
@@ -447,4 +473,12 @@ void rubiks_cube::rubiks_cube::upload_cube_faces_texture_data()
             m_faces_texture_data[i * 6 + index] = face.color;
         }
     }
+}
+
+
+rubiks_cube::rubiks_cube::~rubiks_cube()
+{
+    m_renderer->destroy_parameters_list(m_params_list);
+    m_renderer->destroy_shader(m_draw_shader);
+    m_renderer->destroy_texture(m_cubes_faces_texture);
 }

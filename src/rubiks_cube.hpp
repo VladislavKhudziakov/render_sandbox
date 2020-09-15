@@ -24,6 +24,12 @@ namespace rubiks_cube
         };
 
         explicit rubiks_cube(renderer::renderer* renderer, size_t size = 5);
+        rubiks_cube(const rubiks_cube&) = delete;
+        rubiks_cube(rubiks_cube&&) = delete;
+        rubiks_cube& operator=(const rubiks_cube&) = delete;
+        rubiks_cube& operator=(rubiks_cube&&) = delete;
+        ~rubiks_cube();
+
         void update();
         void draw();
         bool hit(math::ray ray, face& face, math::vec3& hit_point);
@@ -52,7 +58,6 @@ namespace rubiks_cube
         renderer::parameters_list_handler m_params_list;
         renderer::mesh_handler m_cube_mesh;
         renderer::texture_handler m_cubes_faces_texture;
-        renderer::texture_handler m_frame_texture;
 
         renderer::renderer* m_renderer;
 
