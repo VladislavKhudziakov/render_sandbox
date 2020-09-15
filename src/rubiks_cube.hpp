@@ -41,6 +41,8 @@ namespace rubiks_cube
         void rotate(math::vec3);
         bool is_acquired() const;
 
+        size_t get_size();
+
         math::mat4 parent_transform;
 
         rotation_manager rotation_manager;

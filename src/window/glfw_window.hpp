@@ -29,6 +29,7 @@ namespace renderer
         void register_mouse_click_handler(mouse_click_event_handler handler) override;
         void register_resize_handler(resize_handler handler) override;
         void register_mouse_scroll_callback(scroll_handler handler) override;
+        void register_key_handler(keyboard_handler handler) override;
 
         misc::size get_view_size() override;
 
@@ -39,6 +40,7 @@ namespace renderer
         static void mouse_button_callback(GLFWwindow*, int button, int action, int mods);
         static void resize_callback(GLFWwindow* window, int width, int height);
         static void scroll_callback(GLFWwindow* window, double x_offset, double y_offset);
+        static void key_callback(GLFWwindow*,int,int,int,int);
 
         void destroy_window();
 
@@ -46,6 +48,7 @@ namespace renderer
         std::vector<mouse_click_event_handler> m_mouse_click_handlers;
         std::vector<resize_handler> m_resize_handlers;
         std::vector<scroll_handler> m_scroll_handlers;
+        std::vector<keyboard_handler> m_keyboard_handlers;
 
         GLFWwindow* m_window;
     };

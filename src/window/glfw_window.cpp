@@ -40,6 +40,7 @@ renderer::glfw_window::glfw_window(const std::string& name, misc::size size)
     glfwSetCursorPosCallback(m_window, &mouse_pos_callback);
     glfwSetMouseButtonCallback(m_window, &mouse_button_callback);
     glfwSetScrollCallback(m_window, &scroll_callback);
+    glfwSetKeyCallback(m_window, &key_callback);
 }
 
 
@@ -141,10 +142,10 @@ void renderer::glfw_window::mouse_button_callback(GLFWwindow* window, int button
 
     switch (action) {
         case GLFW_PRESS:
-            e.action = mouse_click_event::action_type::press;
+            e.action = ::renderer::action_type::press;
             break;
         case GLFW_RELEASE:
-            e.action = mouse_click_event::action_type::release;
+            e.action = ::renderer::action_type::release;
             break;
         default:
             return;
@@ -191,4 +192,36 @@ misc::size renderer::glfw_window::get_view_size()
     int w, h;
     glfwGetFramebufferSize(m_window, &w, &h);
     return {uint32_t(w), uint32_t(h)};
+}
+
+
+void renderer::glfw_window::register_key_handler(::renderer::keyboard_handler handler)
+{
+    m_keyboard_handlers.emplace_back(std::move(handler));
+}
+
+
+void renderer::glfw_window::key_callback(GLFWwindow* window, int key_code, int scan_code, int action, int)
+{
+    auto glfw_window = reinterpret_cast<::renderer::glfw_window*>(glfwGetWindowUserPointer(window));
+
+    for(auto& handler : glfw_window->m_keyboard_handlers) {
+        ::renderer::action_type event_action;
+
+        switch (action) {
+            case GLFW_PRESS:
+                event_action = ::renderer::action_type::press;
+                break;
+            case GLFW_RELEASE:
+                event_action = ::renderer::action_type::release;
+                break;
+            case GLFW_REPEAT:
+                event_action = ::renderer::action_type::hold;
+                break;
+            default:
+                return;
+        }
+
+        handler({key_code, event_action});
+    }
 }

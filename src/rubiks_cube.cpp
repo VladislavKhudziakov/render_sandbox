@@ -482,3 +482,9 @@ rubiks_cube::rubiks_cube::~rubiks_cube()
     m_renderer->destroy_shader(m_draw_shader);
     m_renderer->destroy_texture(m_cubes_faces_texture);
 }
+
+
+size_t rubiks_cube::rubiks_cube::get_size()
+{
+    return m_size;
+}

@@ -8,6 +8,14 @@
 renderer::camera camera{};
 bool mouse_clicked = false;
 
+constexpr auto MIN_CUBE_SIZE = 3;
+constexpr auto MAX_CUBE_SIZE = 7;
+
+constexpr auto KEY_UP = 265;
+constexpr auto KEY_DOWN = 264;
+
+size_t curr_cube_size = 5;
+
 int main()
 {
     renderer::glfw_window window("my window", {800, 600});
@@ -15,20 +23,40 @@ int main()
     camera.height = 600;
 
     auto* r = window.get_renderer();
-    rubiks_cube::rubiks_cube cube(r);
+    auto cube = std::make_unique<::rubiks_cube::rubiks_cube>(r, curr_cube_size);
+
+    window.register_key_handler([&cube, r](::renderer::key_event e) {
+        if (e.action == ::renderer::action_type::press) {
+            switch (e.key_code) {
+                case KEY_UP:
+                    if (curr_cube_size + 2 <= MAX_CUBE_SIZE) {
+                        curr_cube_size += 2;
+                        cube.reset();
+                        cube = std::make_unique<::rubiks_cube::rubiks_cube>(r, curr_cube_size);
+                    }
+                    break;
+                case KEY_DOWN:
+                    if (curr_cube_size - 2 >= MIN_CUBE_SIZE) {
+                        curr_cube_size -= 2;
+                        cube.reset();
+                        cube = std::make_unique<::rubiks_cube::rubiks_cube>(r, curr_cube_size);
+                    }
+            }
+        }
+    });
 
     window.register_mouse_click_handler([&cube](::renderer::mouse_click_event e) {
-        if (e.action == ::renderer::mouse_click_event::action_type::press && e.button == ::renderer::mouse_click_event::button_type::left) {
+        if (e.action == ::renderer::action_type::press && e.button == ::renderer::mouse_click_event::button_type::left) {
             mouse_clicked = true;
         }
 
-        if (e.action == ::renderer::mouse_click_event::action_type::release && e.button == ::renderer::mouse_click_event::button_type::left) {
+        if (e.action == ::renderer::action_type::release && e.button == ::renderer::mouse_click_event::button_type::left) {
             mouse_clicked = false;
-            if (cube.rotation_manager.is_any_row_acquired()) {
-                cube.rotation_manager.release_row();
+            if (cube->rotation_manager.is_any_row_acquired()) {
+                cube->rotation_manager.release_row();
             }
-            if (cube.is_acquired()) {
-                cube.release();
+            if (cube->is_acquired()) {
+                cube->release();
             }
         }
     });
@@ -56,21 +84,21 @@ int main()
             rubiks_cube::rubiks_cube::face face;
             math::vec3 hit_point;
 
-            if (cube.rotation_manager.is_any_row_acquired()) {
-                cube.rotation_manager.rotate(-(x_axis ? x_offset : y_offset) * -0.01); // in reverse order
+            if (cube->rotation_manager.is_any_row_acquired()) {
+                cube->rotation_manager.rotate(-(x_axis ? x_offset : y_offset) * -0.01); // in reverse order
             } else {
-                if (cube.is_acquired()) {
-                    cube.rotate({float(x_offset) * 0.01f, float(y_offset) * 0.01f, 0.f});
-                } else if (!cube.hit({camera.position, ray * (camera.far - camera.near)}, face, hit_point)) {
-                    cube.acquire();
+                if (cube->is_acquired()) {
+                    cube->rotate({float(x_offset) * 0.01f, float(y_offset) * 0.01f, 0.f});
+                } else if (!cube->hit({camera.position, ray * (camera.far - camera.near)}, face, hit_point)) {
+                    cube->acquire();
                 } else {
-                    auto row_col = cube.get_row_col_by_hit_pos(face, hit_point);
-                    auto axis = cube.get_face_rotation_axis(face);
+                    auto row_col = cube->get_row_col_by_hit_pos(face, hit_point);
+                    auto axis = cube->get_face_rotation_axis(face);
                     x_axis = abs(x_offset) >= abs(y_offset);
                     auto row_index = x_axis ? row_col.y : row_col.x; // in reverse order
                     auto axis_index = x_axis ? axis.x : axis.y;
 
-                    cube.rotation_manager.acquire_row(rubiks_cube::rotation_manager::axis(axis_index), row_index);
+                    cube->rotation_manager.acquire_row(rubiks_cube::rotation_manager::axis(axis_index), row_index);
                 }
             }
         }
@@ -120,14 +148,17 @@ int main()
     camera.target_position = {0, 0, 0};
 
     while (!window.closed()) {
+        if (cube == nullptr) {
+            continue;
+        }
         camera.update();
 
-        cube.parent_transform = camera.get_transformation();
+        cube->parent_transform = camera.get_transformation();
 
         r->encode_draw_command({.type = renderer::draw_command_type::pass, .pass = pass});
 
-        cube.update();
-        cube.draw();
+        cube->update();
+        cube->draw();
         window.update();
     }
 
