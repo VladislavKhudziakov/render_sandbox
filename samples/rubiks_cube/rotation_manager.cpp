@@ -2,7 +2,7 @@
 
 #include "rotation_manager.hpp"
 
-#include <cube.hpp>
+#include "cube.hpp"
 
 rubiks_cube::rotation_manager::rotation_manager(size_t size)
     : m_size(size)

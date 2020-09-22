@@ -6,6 +6,9 @@
 
 #include <stb_image.h>
 
+#include <filesystem>
+#include <iostream>
+
 renderer::texture_descriptor misc::images_loader::load_2d_texture(const std::string& file)
 {
     renderer::texture_descriptor res;
@@ -17,6 +20,10 @@ renderer::texture_descriptor misc::images_loader::load_2d_texture(const std::str
                 stbi_image_free(image_ptr);
             }
         });
+
+    std::filesystem::path p(file);
+    std::cout << std::filesystem::absolute(std::filesystem::path(".")) << std::endl;
+    auto f = std::filesystem::is_regular_file(file);
 
     switch (c) {
         case STBI_grey:

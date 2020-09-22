@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include <cube.hpp>
-#include <rotation_manager.hpp>
+#include "cube.hpp"
+#include "rotation_manager.hpp"
 #include <math/ray.hpp>
 
 namespace rubiks_cube

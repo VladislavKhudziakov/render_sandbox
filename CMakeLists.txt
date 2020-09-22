@@ -1,13 +1,11 @@
 cmake_minimum_required(VERSION 3.17)
-project(rubicks_cube)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/third)
+project(render_sandbox)
+
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/samples)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/src)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/third)
 
-add_executable(rubicks_cube main.cpp)
-
-target_link_libraries(rubicks_cube rubicks_cube_src)
-
-file(COPY ${CMAKE_CURRENT_LIST_DIR}/resources DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+set(CMAKE_CXX_STANDARD 20)

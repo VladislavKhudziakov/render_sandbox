@@ -60,7 +60,7 @@ rubiks_cube::indication_quad::indication_quad(renderer::renderer* r)
 {
     misc::images_loader loader;
 
-    m_draw_texture = m_renderer->create_texture(loader.load_2d_texture("./resources/mlg.png"));
+    m_draw_texture = m_renderer->create_texture(loader.load_2d_texture("./mlg.png"));
 
     renderer::parameters_list_descriptor params_list_descriptor {
         .parameters = {renderer::parameter_type::mat4}
