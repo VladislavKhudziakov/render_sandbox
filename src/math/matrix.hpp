@@ -80,19 +80,6 @@ namespace math
         template<typename X, typename Y>
         using div_result_t = typename div_result<X, Y>::type;
 
-//        template<size_t i>
-//        struct for_i
-//        {
-//            template<template<size_t> typename MetaFunc, typename... Args>
-//            inline static void call(Args&&... args)
-//            {
-//                MetaFunc<i>::call(std::forward<Args>(args)...);
-//                if constexpr (i != 0) {
-//                    for_i<i - 1>::template call<MetaFunc>(std::forward<Args>(args)...);
-//                }
-//            }
-//        };
-
 
         template<size_t Col>
         struct matrix_col
@@ -297,12 +284,6 @@ namespace math
             return m_elements[index];
         }
 
-
-        friend DataType* value_ptr(mat& m)
-        {
-            return m.m_elements[0];
-        }
-
     private:
         DataType m_elements[Rows][Cols];
     };
@@ -312,7 +293,7 @@ namespace math
     auto operator*(const mat<RowsX, ColsX, DataTypeX>& x, const mat<RowsY, ColsY, DataTypeY>& y)
     {
         static_assert(ColsX == RowsY);
-        mat<RowsX, ColsY, detail::mul_result_t<DataTypeX, DataTypeY>> res;
+        mat<RowsX, ColsY, detail::mul_result_t<DataTypeX, DataTypeY>> res{};
         detail::for_i<ColsY - 1>::template call<detail::calc_row>(res, x, y);
         return res;
     }
@@ -321,7 +302,7 @@ namespace math
     template<size_t MatCols, size_t MatRows, typename MatDataType, typename VecDataType>
     auto operator*(mat<MatRows, MatCols, MatDataType>& mat, vec<MatCols, VecDataType>& v)
     {
-        vec<MatCols, detail::mul_result_t<MatDataType, VecDataType>> res;
+        vec<MatCols, detail::mul_result_t<MatDataType, VecDataType>> res{};
         detail::for_i<MatCols - 1>::template call<detail::mat_mul_vec>(res, v, mat);
         return res;
     }
@@ -330,7 +311,7 @@ namespace math
     template<size_t MatCols, size_t MatRows, typename MatDataType, typename VecDataType>
     auto operator*(vec<MatCols, VecDataType>& v, mat<MatRows, MatCols, MatDataType>& mat)
     {
-        vec<MatCols, detail::mul_result_t<MatDataType, VecDataType>> res;
+        vec<MatCols, detail::mul_result_t<MatDataType, VecDataType>> res{};
         detail::for_i<MatRows - 1>::template call<detail::vec_mul_mat>(res, v, mat);
         return res;
     }
@@ -686,6 +667,18 @@ namespace math
         auto world_cords = inv_view * view_cords;
 
         return normalize(vec3{world_cords.x, world_cords.y, world_cords.z});
+    }
+
+    template<typename DataType, size_t Rows, size_t Cols>
+    const auto* value_ptr(const mat<Rows, Cols, DataType>& m)
+    {
+        return &m[0][0];
+    }
+
+    template<typename DataType, size_t Rows, size_t Cols>
+    auto* value_ptr(mat<Rows, Cols, DataType>& m)
+    {
+        return &m[0][0];
     }
 
 

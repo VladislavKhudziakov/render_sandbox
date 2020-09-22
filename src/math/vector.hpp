@@ -8,20 +8,20 @@
 #include <cstdint>
 
 
-#if defined(__WIN32) || defined (__WIN32__) || defined(WIN32)
-    #define M_E         2.71828182845904523536028747135266250   /* e              */
-    #define M_LOG2E     1.44269504088896340735992468100189214   /* log2(e)        */
-    #define M_LOG10E    0.434294481903251827651128918916605082  /* log10(e)       */
-    #define M_LN2       0.693147180559945309417232121458176568  /* loge(2)        */
-    #define M_LN10      2.30258509299404568401799145468436421   /* loge(10)       */
-    #define M_PI        3.14159265358979323846264338327950288   /* pi             */
-    #define M_PI_2      1.57079632679489661923132169163975144   /* pi/2           */
-    #define M_PI_4      0.785398163397448309615660845819875721  /* pi/4           */
-    #define M_1_PI      0.318309886183790671537767526745028724  /* 1/pi           */
-    #define M_2_PI      0.636619772367581343075535053490057448  /* 2/pi           */
-    #define M_2_SQRTPI  1.12837916709551257389615890312154517   /* 2/sqrt(pi)     */
-    #define M_SQRT2     1.41421356237309504880168872420969808   /* sqrt(2)        */
-    #define M_SQRT1_2   0.707106781186547524400844362104849039  /* 1/sqrt(2)      */
+#if defined(__WIN32) || defined(__WIN32__) || defined(WIN32)
+    #define M_E 2.71828182845904523536028747135266250        /* e              */
+    #define M_LOG2E 1.44269504088896340735992468100189214    /* log2(e)        */
+    #define M_LOG10E 0.434294481903251827651128918916605082  /* log10(e)       */
+    #define M_LN2 0.693147180559945309417232121458176568     /* loge(2)        */
+    #define M_LN10 2.30258509299404568401799145468436421     /* loge(10)       */
+    #define M_PI 3.14159265358979323846264338327950288       /* pi             */
+    #define M_PI_2 1.57079632679489661923132169163975144     /* pi/2           */
+    #define M_PI_4 0.785398163397448309615660845819875721    /* pi/4           */
+    #define M_1_PI 0.318309886183790671537767526745028724    /* 1/pi           */
+    #define M_2_PI 0.636619772367581343075535053490057448    /* 2/pi           */
+    #define M_2_SQRTPI 1.12837916709551257389615890312154517 /* 2/sqrt(pi)     */
+    #define M_SQRT2 1.41421356237309504880168872420969808    /* sqrt(2)        */
+    #define M_SQRT1_2 0.707106781186547524400844362104849039 /* 1/sqrt(2)      */
 #endif
 
 namespace math
@@ -219,87 +219,184 @@ namespace math
 
 
     template<typename DataType, size_t size>
-    vec<size, DataType> operator+(vec<size, DataType> v1, vec<size, DataType> v2)
+    void operator+=(vec<size, DataType>& v1, vec<size, DataType> v2)
     {
         detail::transform<size - 1>::apply(v1, v2, v1, [](auto& val1, auto& val2) {
             return val1 + val2;
         });
+    }
+
+
+    template<typename DataType, size_t size>
+    vec<size, DataType> operator+(vec<size, DataType> v1, vec<size, DataType> v2)
+    {
+        v1 += v2;
         return v1;
+    }
+
+
+    template<typename DataType, typename ScalarType, size_t size>
+    void operator+=(vec<size, DataType>& v1, ScalarType scalar)
+    {
+        detail::transform<size - 1>::apply(v1, v1, v1, [&scalar](auto& val1, auto& val2) {
+            return val1 + scalar;
+        });
     }
 
 
     template<typename DataType, typename ScalarType, size_t size>
     vec<size, DataType> operator+(vec<size, DataType> v1, ScalarType scalar)
     {
-        detail::transform<size - 1>::apply(v1, v1, v1, [&scalar](auto& val1, auto& val2) {
-            return val1 + scalar;
-        });
+        v1 += scalar;
         return v1;
+    }
+
+
+    template<typename DataType, typename ScalarType, size_t size>
+    vec<size, DataType> operator+(ScalarType scalar, vec<size, DataType> v1)
+    {
+        return v1 + scalar;
+    }
+
+
+    template<typename DataType, size_t size>
+    void operator-=(vec<size, DataType>& v1, vec<size, DataType> v2)
+    {
+        detail::transform<size - 1>::apply(v1, v2, v1, [](auto& val1, auto& val2) {
+            return val1 - val2;
+        });
     }
 
 
     template<typename DataType, size_t size>
     vec<size, DataType> operator-(vec<size, DataType> v1, vec<size, DataType> v2)
     {
-        detail::transform<size - 1>::apply(v1, v2, v1, [](auto& val1, auto& val2) {
-            return val1 - val2;
-        });
-
+        v1 -= v2;
         return v1;
+    }
+
+
+    template<typename DataType, typename ScalarType, size_t size>
+    void operator-=(vec<size, DataType>& v1, ScalarType scalar)
+    {
+        detail::transform<size - 1>::apply(v1, v1, v1, [&scalar](auto& val1, auto& val2) {
+            return val1 - scalar;
+        });
     }
 
 
     template<typename DataType, typename ScalarType, size_t size>
     vec<size, DataType> operator-(vec<size, DataType> v1, ScalarType scalar)
     {
+        v1 -= scalar;
+        return v1;
+    }
+
+
+    template<typename DataType, typename ScalarType, size_t size>
+    vec<size, DataType> operator-(ScalarType scalar, vec<size, DataType> v1)
+    {
         detail::transform<size - 1>::apply(v1, v1, v1, [&scalar](auto& val1, auto& val2) {
-            return val1 - scalar;
+            return scalar - val1;
         });
 
         return v1;
+    }
+
+
+    template<typename DataType, size_t size>
+    vec<size, DataType> operator-(vec<size, DataType> v1)
+    {
+        detail::transform<size - 1>::apply(v1, v1, v1, [](auto& val1, auto& val2) {
+            return -val1;
+        });
+
+        return v1;
+    }
+
+
+    template<typename DataType, size_t size>
+    void operator/=(vec<size, DataType>& v1, vec<size, DataType> v2)
+    {
+        detail::transform<size - 1>::apply(v1, v2, v1, [](auto& val1, auto& val2) {
+            return val1 / val2;
+        });
     }
 
 
     template<typename DataType, size_t size>
     vec<size, DataType> operator/(vec<size, DataType> v1, vec<size, DataType> v2)
     {
-        detail::transform<size - 1>::apply(v1, v2, v1, [](auto& val1, auto& val2) {
-            return val1 / val2;
-        });
-
+        v1 /= v2;
         return v1;
+    }
+
+
+    template<typename DataType, typename ScalarType, size_t size>
+    void operator/=(vec<size, DataType>& v1, ScalarType scalar)
+    {
+        detail::transform<size - 1>::apply(v1, v1, v1, [&scalar](auto& val1, auto& val2) {
+            return val1 / scalar;
+        });
     }
 
 
     template<typename DataType, typename ScalarType, size_t size>
     vec<size, DataType> operator/(vec<size, DataType> v1, ScalarType scalar)
     {
+        v1 /= scalar;
+        return v1;
+    }
+
+
+    template<typename DataType, typename ScalarType, size_t size>
+    vec<size, DataType> operator/(ScalarType scalar, vec<size, DataType> v1)
+    {
         detail::transform<size - 1>::apply(v1, v1, v1, [&scalar](auto& val1, auto& val2) {
-            return val1 / scalar;
+            return scalar / val1;
         });
         return v1;
     }
 
 
     template<typename DataType, size_t size>
-    vec<size, DataType> operator*(vec<size, DataType> v1, vec<size, DataType> v2)
+    void operator*=(vec<size, DataType>& v1, vec<size, DataType> v2)
     {
         detail::transform<size - 1>::apply(v1, v2, v1, [](auto& val1, auto& val2) {
             return val1 * val2;
         });
+    }
 
+
+    template<typename DataType, size_t size>
+    vec<size, DataType> operator*(vec<size, DataType> v1, vec<size, DataType> v2)
+    {
+        v1 *= v2;
         return v1;
+    }
+
+
+    template<typename DataType, typename ScalarType, size_t size>
+    void operator*=(vec<size, DataType>& v1, ScalarType scalar)
+    {
+        detail::transform<size - 1>::apply(v1, v1, v1, [&scalar](auto& val1, auto& val2) {
+            return val1 * scalar;
+        });
     }
 
 
     template<typename DataType, typename ScalarType, size_t size>
     vec<size, DataType> operator*(vec<size, DataType> v1, ScalarType scalar)
     {
-        detail::transform<size - 1>::apply(v1, v1, v1, [&scalar](auto& val1, auto& val2) {
-            return val1 * scalar;
-        });
-
+        v1 *= scalar;
         return v1;
+    }
+
+
+    template<typename DataType, typename ScalarType, size_t size>
+    vec<size, DataType> operator*(ScalarType scalar, vec<size, DataType> v1)
+    {
+        return v1 * scalar;
     }
 
 
@@ -314,7 +411,6 @@ namespace math
     {
         return !(v1 == v2);
     }
-
 
 
     template<typename DataType, size_t size>
