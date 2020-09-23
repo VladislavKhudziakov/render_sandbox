@@ -5,7 +5,7 @@
 
 #include "cube.hpp"
 #include "rotation_manager.hpp"
-#include <math/ray.hpp>
+#include <ray.hpp>
 
 namespace rubiks_cube
 {

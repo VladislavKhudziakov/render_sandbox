@@ -303,12 +303,11 @@ math::ivec2 rubiks_cube::rubiks_cube::get_row_col_by_hit_pos(face& face, math::v
             case pos_y:
                 [[fallthrough]];
             case neg_y:
-                [[fallthrough]];
-            case pos_z:
                 if (hit_point.x >= x_min && hit_point.x <= x_min + 1) {
                     res.y = x; // yes y = x
                 }
-                break;
+            case pos_z:
+                [[fallthrough]];
             case neg_z:
                 if (hit_point.x >= x_min && hit_point.x <= x_min + 1) {
                     res.x = x;
