@@ -643,8 +643,8 @@ namespace math
     }
 
 
-    inline vec3 mouse_to_world_space_ray(
-        vec2 mouse_position,
+    inline vec3 screen_coords_to_world_space_vector(
+        vec2 pixel_position,
         vec2 screen_size,
         vec3 cam_eye,
         vec3 cam_target,
@@ -653,14 +653,14 @@ namespace math
         float frustum_near,
         float frustum_far)
     {
-        mouse_position = (mouse_position / screen_size) * 2.0f;
-        mouse_position.x = mouse_position.x - 1.0f;
-        mouse_position.y = 1.0f - mouse_position.y;
-        mouse_position.y = mouse_position.y * tanf(cam_fov * 0.5f);
-        mouse_position.x = mouse_position.x * tanf(cam_fov * 0.5f);
+        pixel_position = (pixel_position / screen_size) * 2.0f;
+        pixel_position.x = pixel_position.x - 1.0f;
+        pixel_position.y = 1.0f - pixel_position.y;
+        pixel_position.y = pixel_position.y * tanf(cam_fov * 0.5f);
+        pixel_position.x = pixel_position.x * tanf(cam_fov * 0.5f);
         auto inv_proj = inverse(perspective(cam_fov, frustum_near, frustum_far, screen_size.x, screen_size.y));
         auto inv_view = inverse(look_at(cam_eye, cam_target, cam_up));
-        auto view_cords = vec4{mouse_position.x, mouse_position.y, -1, 1};
+        auto view_cords = vec4{pixel_position.x, pixel_position.y, -1, 1};
         view_cords = inv_proj * view_cords;
         view_cords.z = -1.0f;
         view_cords.w = 0.0f;
