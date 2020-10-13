@@ -13,7 +13,7 @@ namespace raytracer
     {
     public:
         virtual ~hit_detector() = default;
-        virtual bool hit(math::raytracing::ray, hit_record&, float t_min = 0, float t_max = std::numeric_limits<float>::max()) = 0;
+        virtual bool hit(math::raytracing::ray3, hit_record&, float t_min = 0, float t_max = std::numeric_limits<float>::max()) = 0;
     };
 }
 

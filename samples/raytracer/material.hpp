@@ -13,10 +13,10 @@ namespace raytracer
         virtual ~material() = default;
 
         virtual bool scatter(
-            math::raytracing::ray,
+            math::raytracing::ray3,
             const raytracer::hit_record&,
             math::vec3& attenuation,
-            math::raytracing::ray& scattered) = 0;
+            math::raytracing::ray3& scattered) = 0;
     };
 }
 

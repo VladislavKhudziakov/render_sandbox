@@ -16,7 +16,7 @@ raytracer::camera::camera(float fov, float width, float height, math::vec3 o, ma
 }
 
 
-math::raytracing::ray raytracer::camera::gen_ray(float x, float y)
+math::raytracing::ray3 raytracer::camera::gen_ray(float x, float y)
 {
     auto dir = math::normalize(m_left_bottom + m_hor * x + m_vert * y);
     return {m_origin, dir};

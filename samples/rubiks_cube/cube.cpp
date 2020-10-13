@@ -2,6 +2,7 @@
 
 #include "cube.hpp"
 
+#include <math/matrix_operations.hpp>
 
 rubiks_cube::cube::cube(math::ivec3 translation)
     : m_position(translation)

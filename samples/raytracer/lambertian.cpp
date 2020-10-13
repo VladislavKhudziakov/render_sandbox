@@ -11,10 +11,10 @@ raytracer::lambertian::lambertian(math::vec3 albedo)
 
 
 bool raytracer::lambertian::scatter(
-    math::raytracing::ray ray,
+    math::raytracing::ray3 ray,
     const raytracer::hit_record& record,
     math::vec3& attenuation,
-    math::raytracing::ray& scattered)
+    math::raytracing::ray3& scattered)
 {
     auto dir = math::normalize(record.normal + math::misc::random_in_unit_sphere());
     scattered = {record.point, dir};

@@ -3,9 +3,12 @@
 
 #pragma once
 
+#include <misc/misc.hpp>
+
 #include <cstddef>
 #include <cmath>
 #include <cstdint>
+#include <functional>
 
 
 #if defined(__WIN32) || defined(__WIN32__) || defined(WIN32)
@@ -42,6 +45,12 @@ namespace math
             {
                 return v.x;
             }
+
+            template<size_t VectorSize, typename DataType>
+            inline static const DataType& get(const vec<VectorSize, DataType>& v)
+            {
+                return v.x;
+            }
         };
 
 
@@ -50,6 +59,12 @@ namespace math
         {
             template<size_t VectorSize, typename DataType>
             inline static DataType& get(vec<VectorSize, DataType>& v)
+            {
+                return v.y;
+            }
+
+            template<size_t VectorSize, typename DataType>
+            inline static const DataType& get(const vec<VectorSize, DataType>& v)
             {
                 return v.y;
             }
@@ -64,6 +79,12 @@ namespace math
             {
                 return v.z;
             }
+
+            template<size_t VectorSize, typename DataType>
+            inline static const DataType& get(const vec<VectorSize, DataType>& v)
+            {
+                return v.z;
+            }
         };
 
 
@@ -72,6 +93,12 @@ namespace math
         {
             template<size_t VectorSize, typename DataType>
             inline static DataType& get(vec<VectorSize, DataType>& v)
+            {
+                return v.w;
+            }
+
+            template<size_t VectorSize, typename DataType>
+            inline static const DataType& get(const vec<VectorSize, DataType>& v)
             {
                 return v.w;
             }
@@ -107,17 +134,23 @@ namespace math
             }
         };
 
+        template<typename DataType>
+        constexpr auto accumulate_default_op = [](DataType l, DataType r) { return r + l; };
+
 
         template<size_t index>
         struct accumulate
         {
-            template<size_t VectorSize, typename DataType, typename Functional>
-            inline static decltype(auto) apply(vec<VectorSize, DataType>& v, Functional f)
+            template<size_t VectorSize, typename DataType, typename Functional, typename Op = decltype(accumulate_default_op<DataType>)>
+            inline static decltype(auto) apply(
+                vec<VectorSize, DataType>& v,
+                Functional f,
+                Op op = accumulate_default_op<DataType>)
             {
                 if constexpr (index == 0) {
                     return f(vector_element<0>::get(v));
                 } else {
-                    return f(vector_element<index>::get(v)) + accumulate<index - 1>::apply(v, std::move(f));
+                    return op(f(vector_element<index>::get(v)), accumulate<index - 1>::apply(v, std::move(f), std::move(op)));
                 }
             }
         };
@@ -159,6 +192,12 @@ namespace math
     {
         DataType x;
         DataType y;
+
+        DataType operator[](size_t i)
+        {
+            ASSERT(i < 2);
+            return i == 0 ? x : y;
+        }
     };
 
 
@@ -168,6 +207,21 @@ namespace math
         DataType x;
         DataType y;
         DataType z;
+
+        DataType operator[](size_t i)
+        {
+            ASSERT(i < 3);
+            switch (i) {
+                case 0:
+                    return x;
+                case 1:
+                    return y;
+                case 2:
+                    return z;
+                default:
+                    return DataType();
+            }
+        }
     };
 
 
@@ -178,6 +232,23 @@ namespace math
         DataType y;
         DataType z;
         DataType w;
+
+        DataType operator[](size_t i)
+        {
+            ASSERT(i < 4);
+            switch (i) {
+                case 0:
+                    return x;
+                case 1:
+                    return y;
+                case 2:
+                    return z;
+                case 3:
+                    return w;
+                default:
+                    return DataType();
+            }
+        }
     };
 
 
@@ -410,6 +481,28 @@ namespace math
     bool operator!=(vec<size, DataType> v1, vec<size, DataType> v2)
     {
         return !(v1 == v2);
+    }
+
+
+    template<typename DataType, size_t size>
+    vec<size, DataType> min(vec<size, DataType> v1, vec<size, DataType> v2)
+    {
+        detail::transform<size - 1>::apply(v1, v2, v1, [](auto& l, auto& r) {
+            return l < r ? l : r;
+        });
+
+        return v1;
+    }
+
+
+    template<typename DataType, size_t size>
+    vec<size, DataType> max(vec<size, DataType> v1, vec<size, DataType> v2)
+    {
+        detail::transform<size - 1>::apply(v1, v2, v1, [](auto& l, auto& r) {
+            return l > r ? l : r;
+        });
+
+        return v1;
     }
 
 

@@ -24,11 +24,11 @@ constexpr static size_t samples_count = 4;
 
 math::ubvec3 image[height][width];
 
-math::vec3 color(math::raytracing::ray ray, raytracer::hit_detector* world, size_t recursion_depth = 0)
+math::vec3 color(math::raytracing::ray3 ray, raytracer::hit_detector* world, size_t recursion_depth = 0)
 {
     raytracer::hit_record r{};
     if (recursion_depth <= 500 && world->hit(ray, r, 0.0001) && r.material != nullptr) {
-        math::raytracing::ray new_ray{};
+        math::raytracing::ray3 new_ray{};
         math::vec3 attenuation;
         r.material->scatter(ray, r, attenuation, new_ray);
         return attenuation * color(new_ray, world, ++recursion_depth);

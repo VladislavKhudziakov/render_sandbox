@@ -6,10 +6,10 @@
 
 
 bool raytracer::metal::scatter(
-    math::raytracing::ray ray,
+    math::raytracing::ray3 ray,
     const raytracer::hit_record& record,
     math::vec3& attenuation,
-    math::raytracing::ray& scattered)
+    math::raytracing::ray3& scattered)
 {
     auto r = math::misc::random_in_unit_sphere();
     r *= 1. - m_metalness;

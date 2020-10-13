@@ -14,10 +14,10 @@ namespace raytracer
         ~lambertian() override = default;
 
         bool scatter(
-            math::raytracing::ray ray,
+            math::raytracing::ray3 ray,
             const hit_record& record,
             math::vec3& attenuation,
-            math::raytracing::ray& scattered) override;
+            math::raytracing::ray3& scattered) override;
 
         math::vec3 albedo{};
     };

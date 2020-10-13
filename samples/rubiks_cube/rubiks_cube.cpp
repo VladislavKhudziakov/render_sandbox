@@ -3,6 +3,7 @@
 #include "rubiks_cube.hpp"
 
 #include <misc/images_loader.hpp>
+#include <math/matrix_operations.hpp>
 
 #include <sstream>
 

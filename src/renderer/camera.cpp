@@ -2,6 +2,8 @@
 
 #include "camera.hpp"
 
+#include <math/matrix_operations.hpp>
+
 
 void renderer::camera::update()
 {

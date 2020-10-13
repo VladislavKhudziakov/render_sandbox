@@ -20,7 +20,7 @@ namespace raytracer
             m_hit_detectors.emplace_back(std::make_unique<T>(std::forward<Args>(args)...));
         }
 
-        bool hit(math::raytracing::ray ray, raytracer::hit_record& record, float t_min, float t_max) override
+        bool hit(math::raytracing::ray3 ray, raytracer::hit_record& record, float t_min, float t_max) override
         {
             raytracer::hit_record closest{};
             bool is_first = true;

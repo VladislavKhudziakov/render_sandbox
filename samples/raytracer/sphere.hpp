@@ -17,7 +17,7 @@ namespace raytracer
 
         virtual ~sphere() = default;
 
-        bool hit(math::raytracing::ray ray, raytracer::hit_record& record, float t_min, float t_max) override;
+        bool hit(math::raytracing::ray3 ray, raytracer::hit_record& record, float t_min, float t_max) override;
 
         math::vec3 origin;
         float radius;

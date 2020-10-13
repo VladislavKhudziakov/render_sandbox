@@ -3,6 +3,7 @@
 #include "quad.hpp"
 
 #include <misc/images_loader.hpp>
+#include <math/matrix_operations.hpp>
 
 namespace
 {

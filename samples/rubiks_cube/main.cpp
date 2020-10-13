@@ -2,7 +2,9 @@
 #include <window/glfw_window.hpp>
 #include <renderer/renderer.hpp>
 
-#include <camera.hpp>
+#include <renderer/camera.hpp>
+#include <math/matrix_operations.hpp>
+
 #include "rubiks_cube.hpp"
 #include "quad.hpp"
 

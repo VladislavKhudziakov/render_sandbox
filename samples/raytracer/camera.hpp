@@ -17,7 +17,7 @@ namespace raytracer
     public:
         camera(float fov, float width, float height, math::vec3 o, math::vec3 target, math::vec3 up = {0., 1., 0.});
 
-        math::raytracing::ray gen_ray(float x, float y);
+        math::raytracing::ray3 gen_ray(float x, float y);
 
     private:
         math::vec3 m_hor;

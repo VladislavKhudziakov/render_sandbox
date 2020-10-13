@@ -14,10 +14,10 @@ raytracer::dielectric::dielectric(math::vec3 albedo, float ref_c)
 
 
 bool raytracer::dielectric::scatter(
-    math::raytracing::ray ray,
+    math::raytracing::ray3 ray,
     const raytracer::hit_record& record,
     math::vec3& attenuation,
-    math::raytracing::ray& scattered)
+    math::raytracing::ray3& scattered)
 {
     math::vec3 on;
     float ni_over_nt;

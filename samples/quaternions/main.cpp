@@ -1,9 +1,13 @@
 
 #include <math/quaternion.hpp>
+#include <math/misc/misc.hpp>
+#include <math/bound_boxes/bound.hpp>
 
 #include <window/glfw_window.hpp>
 #include <renderer/renderer.hpp>
-#include <camera.hpp>
+#include <renderer/camera.hpp>
+#include <math/matrix_operations.hpp>
+#include <math/raytracing/ray.hpp>
 
 // clang-format off
 constexpr float vertices[] = {
@@ -81,11 +85,13 @@ bool mouse_clicked = false;
 int main()
 {
     math::quaternion q = math::quaternion_rotation({0, 0, 1}, 0);
+    math::bound_boxes::bound3 bound {{-0.5, -0.5, -0.5}, {0.5, 0.5, 0.5}};
+    math::vec2 mouse_position{};
 
     renderer::glfw_window window("my window", {800, 600});
 
     renderer::camera camera{};
-    camera.position = math::vec3{0, 0, 2};
+    camera.position = math::vec3{2, 3, 2};
     camera.target_position = math::vec3{0, 0, 0};
     camera.near = 0.1;
     camera.far = 100.;
@@ -108,18 +114,19 @@ int main()
         }
     });
 
-    window.register_mouse_position_handler([&q, &window](::renderer::mouse_position_event e) {
+    window.register_mouse_position_handler([&q, &window, &mouse_position](::renderer::mouse_position_event e) {
         static float angle = 0;
         static auto last_x = 0;
 
         if (mouse_clicked) {
             auto t = e.x / window.get_size().width;
-            math::quaternion q1 = math::quaternion_rotation(math::vec3 {0, 0, 1}, 0);
-            math::quaternion q2 = math::quaternion_rotation(math::normalize(math::vec3 {0, 1, 0}), 0);
-            q = math::slerp(q1, q2, t);
+            q = math::normalize(math::quaternion_rotation(math::vec3 {1, 0, 1}, math::misc::lerp(0, M_PI, t)));
+//            auto q2 = math::quaternion_rotation(math::normalize(math::vec3 {0, 1, 0}), M_PI_4);
+//            q = math::slerp(q1, q2, t);
         }
 
         last_x = e.x;
+        mouse_position = {float(e.x), float(e.y)};
     });
 
     auto r = window.get_renderer();
@@ -181,6 +188,22 @@ int main()
         camera.update();
         auto m = math::to_matrix(q);
         auto mvp = math::transpose(camera.get_transformation() * m);
+        auto mouse_dir = math::screen_coords_to_world_space_vector(
+            mouse_position,
+            {800, 600},
+            camera.position, camera.target_position,
+            {0, 1, 0},
+            camera.fov,
+            camera.near,
+            camera.far);
+
+        math::raytracing::ray3 ray{camera.position, mouse_dir};
+        auto intersect = math::raytracing::intersect(ray, bound);
+
+        if (intersect) {
+            std::cout << "intersect" << std::endl;
+        }
+
         r->encode_draw_command({.type = renderer::draw_command_type::pass, .pass = pass});
         r->set_parameter_data(instance_params, 0, math::value_ptr(mvp));
         r->encode_draw_command({.type = renderer::draw_command_type::draw, .mesh = mesh, .shader = shader});

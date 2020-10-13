@@ -9,7 +9,7 @@ raytracer::sphere::sphere(math::vec3 o, float r, std::unique_ptr<material> mater
 }
 
 
-bool raytracer::sphere::hit(math::raytracing::ray ray, raytracer::hit_record& record, float t_min, float t_max)
+bool raytracer::sphere::hit(math::raytracing::ray3 ray, raytracer::hit_record& record, float t_min, float t_max)
 {
     math::vec3 oc = ray.origin - origin;
     float a = math::dot(ray.direction, ray.direction);
