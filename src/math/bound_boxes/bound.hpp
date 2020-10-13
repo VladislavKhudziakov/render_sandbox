@@ -17,7 +17,7 @@ namespace math::bound_boxes
         template<size_t Index>
         struct less
         {
-            template< size_t Size, typename DataType>
+            template<size_t Size, typename DataType>
             inline static void call(math::vec<Size, DataType> l, math::vec<Size, DataType> r, bool& res)
             {
                 res = res && math::detail::vector_element<Index>::get(l) < math::detail::vector_element<Index>::get(r);
@@ -27,7 +27,7 @@ namespace math::bound_boxes
         template<size_t Index>
         struct less_eq
         {
-            template< size_t Size, typename DataType>
+            template<size_t Size, typename DataType>
             inline static void call(math::vec<Size, DataType> l, math::vec<Size, DataType> r, bool& res)
             {
                 res = res && math::detail::vector_element<Index>::get(l) <= math::detail::vector_element<Index>::get(r);
@@ -37,7 +37,7 @@ namespace math::bound_boxes
         template<size_t Index>
         struct greater
         {
-            template< size_t Size, typename DataType>
+            template<size_t Size, typename DataType>
             inline static void call(math::vec<Size, DataType> l, math::vec<Size, DataType> r, bool& res)
             {
                 res = res && math::detail::vector_element<Index>::get(l) > math::detail::vector_element<Index>::get(r);
@@ -47,7 +47,7 @@ namespace math::bound_boxes
         template<size_t Index>
         struct greater_eq
         {
-            template< size_t Size, typename DataType>
+            template<size_t Size, typename DataType>
             inline static void call(math::vec<Size, DataType> l, math::vec<Size, DataType> r, bool& res)
             {
                 res = res && math::detail::vector_element<Index>::get(l) >= math::detail::vector_element<Index>::get(r);
@@ -57,7 +57,7 @@ namespace math::bound_boxes
         template<size_t Index>
         struct assign_corner_val
         {
-            template< size_t Size, typename DataType>
+            template<size_t Size, typename DataType>
             inline static void call(const math::bound_boxes::bound<Size, DataType>& b, math::vec<Size, DataType>& v, size_t i)
             {
                 auto bv = b[bool(i & (1ull << Index))];
@@ -112,14 +112,14 @@ namespace math::bound_boxes
     };
 
 
-    template< size_t Size, typename DataType>
+    template<size_t Size, typename DataType>
     math::vec<Size, DataType> diagonal(const bound<Size, DataType>& b)
     {
         return b.max - b.min;
     }
 
 
-    template< size_t Size, typename DataType>
+    template<size_t Size, typename DataType>
     DataType volume(const bound<Size, DataType>& b)
     {
         auto d = diagonal(b);
@@ -128,7 +128,7 @@ namespace math::bound_boxes
     }
 
 
-    template< size_t Size, typename DataType>
+    template<size_t Size, typename DataType>
     bound<Size, DataType> union_bounds(const bound<Size, DataType>& b1, const bound<Size, DataType>& b2)
     {
         bound<Size, DataType> res;
@@ -138,7 +138,7 @@ namespace math::bound_boxes
     }
 
 
-    template< size_t Size, typename DataType>
+    template<size_t Size, typename DataType>
     bound<Size, DataType> union_bound_point(const bound<Size, DataType>& b1, math::vec<Size, DataType> p)
     {
         bound<Size, DataType> res;
@@ -148,7 +148,7 @@ namespace math::bound_boxes
     }
 
 
-    template< size_t Size, typename DataType>
+    template<size_t Size, typename DataType>
     bool inside(const bound<Size, DataType>& b1, vec<Size, DataType> point)
     {
         bool less_max{true};
@@ -159,7 +159,7 @@ namespace math::bound_boxes
     }
 
 
-    template< size_t Size, typename DataType>
+    template<size_t Size, typename DataType>
     bool inside_excl(const bound<Size, DataType>& b1, vec<Size, DataType> point)
     {
         bool less_max{true};
@@ -170,7 +170,7 @@ namespace math::bound_boxes
     }
 
 
-    template< size_t Size, typename DataType>
+    template<size_t Size, typename DataType>
     bool overlaps(const bound<Size, DataType>& b1, const bound<Size, DataType>& b2)
     {
         bool less_max{true};
@@ -181,7 +181,7 @@ namespace math::bound_boxes
     }
 
 
-    template< size_t Size, typename DataType>
+    template<size_t Size, typename DataType>
     math::vec<Size, DataType> corner(const bound<Size, DataType>& b, size_t i)
     {
         ASSERT(i < (1ull << Size));
@@ -191,7 +191,7 @@ namespace math::bound_boxes
     }
 
 
-    template< size_t Size, typename DataType>
+    template<size_t Size, typename DataType>
     bound<Size, DataType> intersect(const bound<Size, DataType>& b1, const bound<Size, DataType>& b2)
     {
         bound<Size, DataType> res;
@@ -200,7 +200,7 @@ namespace math::bound_boxes
         return res;
     }
 
-    template< size_t Size, typename DataType>
+    template<size_t Size, typename DataType>
     void bound_sphere(const bound<Size, DataType>& b, vec<Size, DataType>& v, DataType& r)
     {
         v = (b.max - b.min) / 2;

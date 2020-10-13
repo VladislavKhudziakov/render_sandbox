@@ -17,7 +17,7 @@ namespace math::raytracing
         template<size_t Index>
         struct aabb_intersect_resolver
         {
-            template< size_t Size, typename DataType>
+            template<size_t Size, typename DataType>
             inline static void call(
                 const raytracing::ray<Size, DataType>& r,
                 const bound_boxes::bound<Size, DataType>& b,
@@ -32,7 +32,7 @@ namespace math::raytracing
                 const auto one_over_d = static_cast<DataType>(1) / math::detail::vector_element<Index>::get(r.direction);
 
                 DataType tnear = (math::detail::vector_element<Index>::get(b.min) - math::detail::vector_element<Index>::get(r.origin)) * one_over_d;
-                DataType tfar =(math::detail::vector_element<Index>::get(b.max) - math::detail::vector_element<Index>::get(r.origin)) * one_over_d;
+                DataType tfar = (math::detail::vector_element<Index>::get(b.max) - math::detail::vector_element<Index>::get(r.origin)) * one_over_d;
 
                 if (tnear > tfar) {
                     std::swap(tnear, tfar);
@@ -44,7 +44,7 @@ namespace math::raytracing
                 success = tmin < tmax;
             }
         };
-    }
+    } // namespace detail
 
 
     template<size_t Size, typename DataType>
@@ -79,12 +79,10 @@ namespace math::raytracing
         }
 
         return success;
-
     }
 
 
     using ray4 = ray<4, float>;
     using ray3 = ray<3, float>;
     using ray2 = ray<2, float>;
-}
-
+} // namespace math::raytracing

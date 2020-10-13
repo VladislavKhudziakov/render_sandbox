@@ -19,7 +19,7 @@ namespace math
         a = {cross(a.v, b.v) + b.w * a.v + a.w * b.v, a.w * b.w - dot(a.v, b.v)};
     }
 
-    template <typename Scalar, typename = std::enable_if<!std::is_same_v<Scalar, quaternion>>>
+    template<typename Scalar, typename = std::enable_if<!std::is_same_v<Scalar, quaternion>>>
     void operator*=(quaternion& a, Scalar b)
     {
         a = {a.v * b, a.w * b};
@@ -31,28 +31,28 @@ namespace math
         return a;
     }
 
-    template <typename Scalar, typename = std::enable_if<!std::is_same_v<Scalar, quaternion>>>
+    template<typename Scalar, typename = std::enable_if<!std::is_same_v<Scalar, quaternion>>>
     quaternion operator*(quaternion a, Scalar b)
     {
         a *= b;
         return a;
     }
 
-    template <typename Scalar, typename = std::enable_if<!std::is_same_v<Scalar, quaternion>>>
+    template<typename Scalar, typename = std::enable_if<!std::is_same_v<Scalar, quaternion>>>
     quaternion operator*(Scalar b, quaternion a)
     {
         a *= b;
         return a;
     }
 
-    template <typename Scalar, typename = std::enable_if<!std::is_same_v<Scalar, quaternion>>>
+    template<typename Scalar, typename = std::enable_if<!std::is_same_v<Scalar, quaternion>>>
     void operator/=(quaternion& a, Scalar b)
     {
         auto inv = 1 / b;
         a = {a.v * inv, a.w * inv};
     }
 
-    template <typename Scalar, typename = std::enable_if<!std::is_same_v<Scalar, quaternion>>>
+    template<typename Scalar, typename = std::enable_if<!std::is_same_v<Scalar, quaternion>>>
     quaternion operator/(quaternion a, Scalar b)
     {
         a /= b;
@@ -146,5 +146,4 @@ namespace math
         angle *= 0.5;
         return {sinf(angle) * v, cosf(angle)};
     }
-}
-
+} // namespace math
