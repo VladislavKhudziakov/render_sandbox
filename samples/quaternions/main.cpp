@@ -8,6 +8,7 @@
 #include <renderer/camera.hpp>
 #include <math/matrix_operations.hpp>
 #include <math/raytracing/ray.hpp>
+#include <shapes/sphere.hpp>
 
 // clang-format off
 constexpr float vertices[] = {
@@ -67,6 +68,7 @@ void main()
 {
     gl_Position = mvp * vec4(attr_pos, 1.);
     v_color = vec4(float(gl_VertexID) / 36.0, 0.4, 0.6, 1.0);
+    gl_PointSize = 3.0f;
 })";
 
 constexpr auto fs = R"(#version 410 core
@@ -91,7 +93,7 @@ int main()
     renderer::glfw_window window("my window", {800, 600});
 
     renderer::camera camera{};
-    camera.position = math::vec3{2, 3, 2};
+    camera.position = math::vec3{-2, 3, 2};
     camera.target_position = math::vec3{0, 0, 0};
     camera.near = 0.1;
     camera.far = 100.;
@@ -150,10 +152,25 @@ int main()
 
     const auto shader = r->create_shader(shader_descriptor);
 
+    shapes::sphere sphere{};
+
     renderer::mesh_layout_descriptor mesh_layout_descriptor {
         .vertex_attributes = {renderer::vertex_attribute{.data_type = renderer::data_type::f32, .elements_count = 3}},
-        .vertex_data = {reinterpret_cast<const uint8_t*>(vertices), reinterpret_cast<const uint8_t*>(vertices) + sizeof(vertices)}
+        .vertex_data = {reinterpret_cast<const uint8_t*>(vertices), reinterpret_cast<const uint8_t*>(vertices) + sizeof(vertices)},
     };
+
+    sphere.generate(
+    mesh_layout_descriptor.vertex_data,
+    mesh_layout_descriptor.index_data,
+200,
+    shapes::shape::triangulate | shapes::shape::gen_uv | shapes::shape::gen_normal | shapes::shape::gen_tangents);
+
+    auto* begin = reinterpret_cast<uint16_t*>(mesh_layout_descriptor.index_data.data());
+    auto* end = begin + mesh_layout_descriptor.index_data.size() / sizeof(uint16_t);
+
+    for (size_t counter = 0; begin != end; begin+=3, counter++) {
+        std::cout << "polygon " << counter << " | " << *begin << " " << *(begin + 1)  << " " << *(begin + 2) << std::endl;
+    }
 
     const auto mesh = r->create_mesh(mesh_layout_descriptor);
 

@@ -15,6 +15,8 @@ renderer::gl::vao::vao(const ::renderer::mesh_layout_descriptor& vld)
     bind_guard vbo_bind(vbo);
     std::optional<bind_guard<element_buffer>> ebo_bind;
 
+    bind_guard this_bind(*this);
+
     if (!vld.index_data.empty()) {
         ebo.emplace(vld.index_data.size());
         ebo_bind.emplace(ebo.value());
@@ -22,8 +24,6 @@ renderer::gl::vao::vao(const ::renderer::mesh_layout_descriptor& vld)
     }
 
     vbo.load_data(reinterpret_cast<const void*>(vld.vertex_data.data()));
-
-    bind_guard this_bind(*this);
 
     auto vertex_attribs_size = vld.vertex_attributes.size();
 
@@ -49,6 +49,7 @@ renderer::gl::vao::vao(const ::renderer::mesh_layout_descriptor& vld)
     m_vertices_count = vld.vertex_data.size() / stride;
     m_indices_count = vld.index_data.size() / gl_type.type_size;
     m_indices_format = gl_type.gl_format;
+    m_geometry_topology = traits::get_gl_geom_topology(vld.topology, vld.adjacent);
 }
 
 
@@ -56,10 +57,18 @@ void renderer::gl::vao::draw()
 {
     bind_guard bind(*this);
 
+    if (m_geometry_topology == GL_POINTS) {
+        glEnable(GL_PROGRAM_POINT_SIZE);
+    }
+
     if (m_indices_count > 0) {
-        glDrawElements(GL_TRIANGLES, m_indices_count, m_indices_format, reinterpret_cast<void*>(0));
+        glDrawElements(m_geometry_topology, m_indices_count, m_indices_format, reinterpret_cast<void*>(0));
     } else {
-        glDrawArrays(GL_TRIANGLES, 0, m_vertices_count);
+        glDrawArrays(m_geometry_topology, 0, m_vertices_count);
+    }
+
+    if (m_geometry_topology == GL_POINTS) {
+        glDisable(GL_PROGRAM_POINT_SIZE);
     }
 }
 
@@ -78,10 +87,18 @@ void renderer::gl::vao::draw_instanced(uint32_t instances_count)
 {
     bind_guard bind(*this);
 
+    if (m_geometry_topology == GL_POINTS) {
+        glEnable(GL_PROGRAM_POINT_SIZE);
+    }
+
     ASSERT(instances_count > 0);
     if (m_indices_count > 0) {
-        glDrawElementsInstanced(GL_TRIANGLES, m_indices_count, m_indices_format, reinterpret_cast<void*>(0), instances_count);
+        glDrawElementsInstanced(m_geometry_topology, m_indices_count, m_indices_format, reinterpret_cast<void*>(0), instances_count);
     } else {
-        glDrawArraysInstanced(GL_TRIANGLES, 0, m_vertices_count, instances_count);
+        glDrawArraysInstanced(m_geometry_topology, 0, m_vertices_count, instances_count);
+    }
+
+    if (m_geometry_topology == GL_POINTS) {
+        glDisable(GL_PROGRAM_POINT_SIZE);
     }
 }

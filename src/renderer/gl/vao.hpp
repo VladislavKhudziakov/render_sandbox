@@ -48,5 +48,6 @@ namespace renderer::gl
         size_t m_indices_count{0};
         size_t m_vertices_count{0};
         GLenum m_indices_format{0};
+        GLenum m_geometry_topology{0};
     };
 } // namespace renderer::gl

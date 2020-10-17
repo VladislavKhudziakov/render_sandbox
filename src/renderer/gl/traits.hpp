@@ -146,4 +146,20 @@ namespace renderer::gl::traits
         }
     }
 
+    inline size_t get_gl_geom_topology(::renderer::geometry_topology topology, bool adjacent)
+    {
+        switch (topology) {
+            case geometry_topology::points:
+                return GL_POINTS;
+            case geometry_topology::lines:
+                return adjacent ? GL_LINES_ADJACENCY : GL_LINES;
+            case geometry_topology::line_strips:
+                return adjacent ? GL_LINE_STRIP_ADJACENCY : GL_LINE_STRIP;
+            case geometry_topology::triangles:
+                return  adjacent ? GL_TRIANGLES_ADJACENCY : GL_TRIANGLES;
+            case geometry_topology::triangles_strip:
+                return adjacent ? GL_TRIANGLES_ADJACENCY : GL_TRIANGLE_STRIP;
+        }
+    }
+
 } // namespace renderer::gl::traits

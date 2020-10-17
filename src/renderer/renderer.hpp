@@ -28,6 +28,11 @@ namespace renderer
         d24
     };
 
+    enum class geometry_topology
+    {
+        points, lines, line_strips, triangles, triangles_strip
+    };
+
     enum class shader_stage_name
     {
         vertex,
@@ -124,6 +129,8 @@ namespace renderer
         std::vector<uint8_t> vertex_data;
         std::vector<uint8_t> index_data;
         data_type indices_data_type = data_type::u16;
+        geometry_topology topology = geometry_topology::triangles;
+        bool adjacent = false;
     };
 
     struct shader_stage
