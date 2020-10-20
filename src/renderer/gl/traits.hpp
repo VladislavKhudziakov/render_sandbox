@@ -43,6 +43,8 @@ namespace renderer::gl::traits
                 return GL_VERTEX_SHADER;
             case shader_stage_name::fragment:
                 return GL_FRAGMENT_SHADER;
+            case shader_stage_name::geometry:
+                return GL_GEOMETRY_SHADER;
         }
     }
 

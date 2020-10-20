@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <math/vector.hpp>
+
 #include <vector>
 #include <cinttypes>
 
@@ -20,7 +22,7 @@ namespace shapes
         virtual void generate(
             std::vector<uint8_t>& vertices,
             std::vector<uint8_t>& indices,
-            uint32_t vert_count,
+            uint32_t smoothness,
             uint64_t cond_bits) = 0;
     };
 }

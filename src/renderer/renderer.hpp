@@ -36,7 +36,8 @@ namespace renderer
     enum class shader_stage_name
     {
         vertex,
-        fragment
+        geometry,
+        fragment,
     };
 
     struct vertex_attribute
