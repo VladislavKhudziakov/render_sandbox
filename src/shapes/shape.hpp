@@ -9,6 +9,11 @@
 
 namespace shapes
 {
+    enum class clockwise
+    {
+        cw, ccw
+    };
+
     class shape
     {
     public:

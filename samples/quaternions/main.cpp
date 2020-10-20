@@ -10,6 +10,7 @@
 #include <math/matrix_operations.hpp>
 #include <math/raytracing/ray.hpp>
 #include <shapes/sphere.hpp>
+#include <shapes/cylinder.hpp>
 
 // clang-format off
 constexpr float vertices[] = {
@@ -244,7 +245,7 @@ int main()
             .color_write = true,
             .depth_write = true,
             .depth_test = renderer::depth_test_mode::less_eq,
-            .cull = renderer::cull_mode::off,
+            .cull = renderer::cull_mode::back,
         },
     };
 
@@ -268,6 +269,7 @@ int main()
     const auto normals_shader = r->create_shader(normals_shader_descriptor);
 
     shapes::sphere sphere{};
+    shapes::cylinder cylinder{};
 
     renderer::mesh_layout_descriptor mesh_layout_descriptor {
         .vertex_attributes = {
@@ -279,7 +281,7 @@ int main()
         .topology = renderer::geometry_topology::triangles
     };
 
-    sphere.generate(
+    cylinder.generate(
     mesh_layout_descriptor.vertex_data,
     mesh_layout_descriptor.index_data,
     14,

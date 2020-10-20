@@ -2,28 +2,26 @@
 
 #pragma once
 
-#include <shapes/shape.hpp>
+#include <shapes/quadratic.hpp>
 
 namespace shapes
 {
-    class cylinder : public shape
+    class cylinder : public quadratic
     {
     public:
-        explicit cylinder(float r = 1, float x = 0, float y = 0, float z = 0, float length = 2, float phi_max = M_PI * 2);
+        explicit cylinder(float r = 1, float zmin = -1, float zmax = 1, float phi_max = M_PI * 2);
         ~cylinder() override = default;
 
-        void generate(
-            std::vector<uint8_t>& vertices,
-            std::vector<uint8_t>& indices,
-            uint32_t smoothness,
-            uint64_t cond_bits) override;
+    protected:
+        math::vec3 get_position(float u, float v) override;
+        math::vec3 get_normal(float u, float v, math::vec3 position) override;
+        math::vec3 get_tangent(float u, float v, math::vec3 position) override;
+
 
     private:
         float m_r;
-        float m_x;
-        float m_y;
-        float m_z;
-        float m_length;
+        float m_zmin;
+        float m_zmax;
         float m_phi_max;
     };
 }

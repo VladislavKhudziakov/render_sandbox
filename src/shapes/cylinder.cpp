@@ -4,38 +4,34 @@
 
 #include <math/misc/misc.hpp>
 
-shapes::cylinder::cylinder(float r, float x, float y, float z, float length, float phi_max)
-    : m_r(r)
-    , m_x(x)
-    , m_y(y)
-    , m_z(z)
-    , m_length(length)
+
+shapes::cylinder::cylinder(float r, float zmin, float zmax, float phi_max)
+    : quadratic(phi_max / float(M_PI * 2), 1, clockwise::ccw)
+    , m_r(r)
+    , m_zmin(zmin)
+    , m_zmax(zmax)
     , m_phi_max(phi_max)
 {
 }
 
 
-void shapes::cylinder::generate(
-    std::vector<uint8_t>& vertices,
-    std::vector<uint8_t>& indices,
-    uint32_t smoothness,
-    uint64_t cond_bits)
+math::vec3 shapes::cylinder::get_position(float u, float v)
 {
-    std::vector<math::vec3> res_vertices;
-    res_vertices.reserve(smoothness * smoothness);
-    for (size_t x = 0; x < smoothness + 1; ++x) {
-        for (size_t y = 0; y < smoothness + 1; ++y) {
-            float u = std::clamp(float(x) / float(smoothness), 0.0f, 1.0f);
-            float v = std::clamp(float(y) / float(smoothness), 0.0f, 1.0f);
+    float phi = math::misc::lerp(0, m_phi_max, u);
+    return {
+        m_r * cosf(phi),
+        m_r * sinf(phi),
+        m_zmin + math::misc::lerp(0.0f, m_zmax - m_zmin, v)};
+}
 
-            float angle = math::misc::lerp(0, m_phi_max, u);
 
-            math::vec3 pos = {
-                m_x + m_r * cosf(angle),
-                m_y + m_r * sinf(angle),
-                math::misc::lerp(m_z - m_length * 0.5f, m_z + m_length * 0.5f, v)};
+math::vec3 shapes::cylinder::get_normal(float u, float v, math::vec3 position)
+{
+    return math::normalize(math::vec3{position.x, position.y, 0});
+}
 
-            res_vertices.emplace_back(pos);
-        }
-    }
+
+math::vec3 shapes::cylinder::get_tangent(float u, float v, math::vec3 position)
+{
+    return math::normalize(math::vec3{-m_phi_max * position.y, m_phi_max * position.x, 0});
 }
