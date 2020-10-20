@@ -19,9 +19,9 @@ math::vec3 shapes::sphere::get_position(float u, float v)
     float phi = math::misc::lerp(0, m_phi_max, u);
     float theta = math::misc::lerp(0, m_theta_max, v);
     return {
-    sinf(theta) * cosf(phi) * m_radius,
-    sinf(theta) * sinf(phi) * m_radius,
-    cosf(theta) * m_radius};
+        sinf(theta) * cosf(phi) * m_radius,
+        sinf(theta) * sinf(phi) * m_radius,
+        cosf(theta) * m_radius};
 }
 
 
@@ -33,5 +33,5 @@ math::vec3 shapes::sphere::get_normal(float u, float v, math::vec3 position)
 
 math::vec3 shapes::sphere::get_tangent(float u, float v, math::vec3 position)
 {
-    return math::normalize(math::vec3 {-m_phi_max * position.y, m_phi_max * position.x, 0});
+    return math::normalize(math::vec3{-m_phi_max * position.y, m_phi_max * position.x, 0});
 }

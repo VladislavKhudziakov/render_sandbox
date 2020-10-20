@@ -9,8 +9,7 @@ namespace shapes
     class quadratic : public shape
     {
     public:
-        quadratic(float umax = 1, float vmax = 1, clockwise clockwise = clockwise::cw);
-
+        explicit quadratic(float umax = 1, float vmax = 1, clockwise clockwise = clockwise::cw);
         ~quadratic() override = default;
         void generate(std::vector<uint8_t>& vertices, std::vector<uint8_t>& indices, uint32_t smoothness, uint64_t cond_bits) override;
 
@@ -24,5 +23,4 @@ namespace shapes
         float m_vmax;
         clockwise m_clockwise;
     };
-}
-
+} // namespace shapes

@@ -24,4 +24,4 @@ namespace shapes
         float m_phi_max;
         float m_theta_max;
     };
-}
+} // namespace shapes

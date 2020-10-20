@@ -11,7 +11,8 @@ namespace shapes
 {
     enum class clockwise
     {
-        cw, ccw
+        cw,
+        ccw
     };
 
     class shape
@@ -30,5 +31,4 @@ namespace shapes
             uint32_t smoothness,
             uint64_t cond_bits) = 0;
     };
-}
-
+} // namespace shapes
