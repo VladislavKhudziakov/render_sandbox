@@ -13,10 +13,10 @@ namespace shapes
     public:
         explicit curve(
             math::vec3 p0 = {0, 0, -1},
-            math::vec3 p1 = {0, 1, -1 + 1.f/20.f},
-            math::vec3 p2 = {0, 1, 1 - 1.f/20.f},
+            math::vec3 p1 = {0, 1, -1.f / 3.f},
+            math::vec3 p2 = {0, -1, 1.f / 3.f},
             math::vec3 p3 = {0, 0, 1},
-            float width = 0.1);
+            float width = 2);
 
         ~curve() override = default;
 
@@ -29,5 +29,4 @@ namespace shapes
         std::array<math::vec3, 4> m_points;
         float m_width;
     };
-}
-
+} // namespace shapes

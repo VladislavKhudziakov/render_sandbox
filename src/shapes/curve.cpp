@@ -26,9 +26,9 @@ math::vec3 shapes::curve::get_position(float u, float v)
     float one_minus_v_pow2 = one_minus_v * one_minus_v;
 
     auto res = one_minus_v_pow3 * m_points[0]
-             + 3 * one_minus_v_pow2 * v * m_points[1]
-             + 3 * one_minus_v * (v * v) * m_points[2]
-             + (v * v * v) * m_points[3];
+               + 3 * one_minus_v_pow2 * v * m_points[1]
+               + 3 * one_minus_v * (v * v) * m_points[2]
+               + (v * v * v) * m_points[3];
 
     res.x = x;
 
@@ -38,11 +38,27 @@ math::vec3 shapes::curve::get_position(float u, float v)
 
 math::vec3 shapes::curve::get_normal(float u, float v, math::vec3 position)
 {
-    return math::vec3();
+    auto dfdv = get_tangent(u, v, position);
+    auto dfdu = math::vec3{-1, 0, 0};
+
+    return math::cross(dfdu, dfdv);
 }
 
 
 math::vec3 shapes::curve::get_tangent(float u, float v, math::vec3 position)
 {
-    return math::vec3();
+    float one_minus_v = 1 - v;
+    float one_minus_v_pow2 = one_minus_v * one_minus_v;
+    float v_pow2 = v * v;
+
+    auto a = m_points[0];
+    auto b = m_points[1];
+    auto c = m_points[2];
+    auto d = m_points[3];
+
+    auto res = -3 * (a * one_minus_v_pow2 + b * (-3 * v_pow2 + 4 * v - 1) + v * (3 * c * v - 2 * c - d * v));
+
+    res.x = 0;
+
+    return math::normalize(res);
 }

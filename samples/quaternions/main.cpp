@@ -210,7 +210,6 @@ int main()
             auto y = math::misc::lerp(0, M_PI * 2, float(e.x / window.get_size().width));
 
             auto v = math::vec3 {1, 1, 0};
-            std::cout << "x " << v.x << " y " << v.y  << " z " << v.z << std::endl;
             q = math::normalize(math::quaternion_rotation(v, angle_x));
         }
 
@@ -246,7 +245,7 @@ int main()
             .color_write = true,
             .depth_write = true,
             .depth_test = renderer::depth_test_mode::less_eq,
-            .cull = renderer::cull_mode::off,
+            .cull = renderer::cull_mode::back,
         },
     };
 
@@ -283,10 +282,10 @@ int main()
         .topology = renderer::geometry_topology::triangles
     };
 
-    sphere.generate(
+    curve.generate(
     mesh_layout_descriptor.vertex_data,
     mesh_layout_descriptor.index_data,
-    14,
+    50,
     shapes::shape::triangulate | shapes::shape::gen_uv | shapes::shape::gen_normal | shapes::shape::gen_tangents);
 
     const auto mesh = r->create_mesh(mesh_layout_descriptor);
