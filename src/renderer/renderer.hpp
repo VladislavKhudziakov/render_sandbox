@@ -201,6 +201,7 @@ namespace renderer
         pass_finish_behavior finish = pass_finish_behavior::store;
         float clear_color[4]{0.2, 0.3, 0.4, 1};
         float clear_depth = 1;
+        uint32_t msaa = 1;
     };
 
     struct pass_descriptor

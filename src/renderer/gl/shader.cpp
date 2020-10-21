@@ -43,6 +43,7 @@ renderer::gl::shader::shader(const ::renderer::shader_descriptor& descriptor)
         GLint loc = glGetUniformLocation(m_handler, sampler_name.c_str());
         ASSERT(loc >= 0);
         glUniform1i(loc, texture_slot++);
+        glGetError();
     }
 
     GLint max_blocks;

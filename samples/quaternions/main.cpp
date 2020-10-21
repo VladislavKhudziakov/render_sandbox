@@ -11,6 +11,7 @@
 #include <math/raytracing/ray.hpp>
 #include <shapes/sphere.hpp>
 #include <shapes/cylinder.hpp>
+#include <shapes/curve.hpp>
 
 // clang-format off
 constexpr float vertices[] = {
@@ -245,7 +246,7 @@ int main()
             .color_write = true,
             .depth_write = true,
             .depth_test = renderer::depth_test_mode::less_eq,
-            .cull = renderer::cull_mode::back,
+            .cull = renderer::cull_mode::off,
         },
     };
 
@@ -270,6 +271,7 @@ int main()
 
     shapes::sphere sphere{};
     shapes::cylinder cylinder{};
+    shapes::curve curve{};
 
     renderer::mesh_layout_descriptor mesh_layout_descriptor {
         .vertex_attributes = {
@@ -281,7 +283,7 @@ int main()
         .topology = renderer::geometry_topology::triangles
     };
 
-    cylinder.generate(
+    sphere.generate(
     mesh_layout_descriptor.vertex_data,
     mesh_layout_descriptor.index_data,
     14,
@@ -312,7 +314,11 @@ int main()
         .attachments = {
             {.type = renderer::attachment_type::color, .render_texture = color_attachment_tex},
             {.type = renderer::attachment_type::depth, .render_texture = depth_attachment_tex},
-        }};
+        },
+        .state = {
+            .msaa = 4
+        }
+    };
 
     auto pass = r->create_pass(pass_descriptor);
 

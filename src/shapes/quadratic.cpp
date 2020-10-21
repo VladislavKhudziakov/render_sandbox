@@ -6,7 +6,11 @@
 namespace
 {
     template<typename IndexType>
-    void generate_indices(std::vector<math::vec3>& vertices, std::vector<uint8_t>& res, size_t total, shapes::clockwise clockwise)
+    void generate_indices(
+        std::vector<math::vec3>& vertices,
+        std::vector<uint8_t>& res, size_t total,
+        shapes::clockwise clockwise,
+        bool closed = true)
     {
         std::vector<IndexType> indices;
         indices.reserve(vertices.size() * 1.5f);
@@ -37,23 +41,25 @@ namespace
             }
         }
 
-        for (size_t y = 0; y < total - 1; ++y) {
-            if (clockwise == shapes::clockwise::cw) {
-                indices.emplace_back(to_flat_index(total - 1, y + 1, total));
-                indices.emplace_back(to_flat_index(total - 1, y, total));
-                indices.emplace_back(to_flat_index(0, y, total));
+        if (closed) {
+            for (size_t y = 0; y < total - 1; ++y) {
+                if (clockwise == shapes::clockwise::cw) {
+                    indices.emplace_back(to_flat_index(total - 1, y + 1, total));
+                    indices.emplace_back(to_flat_index(total - 1, y, total));
+                    indices.emplace_back(to_flat_index(0, y, total));
 
-                indices.emplace_back(to_flat_index(total - 1, y + 1, total));
-                indices.emplace_back(to_flat_index(0, y + 1, total));
-                indices.emplace_back(to_flat_index(0, y, total));
-            } else {
-                indices.emplace_back(to_flat_index(total - 1, y + 1, total));
-                indices.emplace_back(to_flat_index(0, y, total));
-                indices.emplace_back(to_flat_index(total - 1, y, total));
+                    indices.emplace_back(to_flat_index(total - 1, y + 1, total));
+                    indices.emplace_back(to_flat_index(0, y + 1, total));
+                    indices.emplace_back(to_flat_index(0, y, total));
+                } else {
+                    indices.emplace_back(to_flat_index(total - 1, y + 1, total));
+                    indices.emplace_back(to_flat_index(0, y, total));
+                    indices.emplace_back(to_flat_index(total - 1, y, total));
 
-                indices.emplace_back(to_flat_index(total - 1, y + 1, total));
-                indices.emplace_back(to_flat_index(0, y, total));
-                indices.emplace_back(to_flat_index(0, y + 1, total));
+                    indices.emplace_back(to_flat_index(total - 1, y + 1, total));
+                    indices.emplace_back(to_flat_index(0, y, total));
+                    indices.emplace_back(to_flat_index(0, y + 1, total));
+                }
             }
         }
 
@@ -62,10 +68,11 @@ namespace
     }
 } // namespace
 
-shapes::quadratic::quadratic(float umax, float vmax, clockwise clockwise)
+shapes::quadratic::quadratic(float umax, float vmax, clockwise clockwise , bool closed)
     : m_umax(umax)
     , m_vmax(vmax)
     , m_clockwise(clockwise)
+    , m_closed(closed)
 {
 }
 
@@ -162,9 +169,9 @@ void shapes::quadratic::generate(
 
     if (cond_bits & shape::triangulate) {
         if (vertices.size() <= std::numeric_limits<uint16_t>::max()) {
-            generate_indices<uint16_t>(vertices, ind_buf, smoothness + 1, m_clockwise);
+            generate_indices<uint16_t>(vertices, ind_buf, smoothness + 1, m_clockwise, m_closed);
         } else {
-            generate_indices<uint32_t>(vertices, ind_buf, smoothness + 1, m_clockwise);
+            generate_indices<uint32_t>(vertices, ind_buf, smoothness + 1, m_clockwise, m_closed);
         }
     }
 }
