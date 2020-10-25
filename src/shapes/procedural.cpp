@@ -1,6 +1,6 @@
 
 
-#include "quadratic.hpp"
+#include "procedural.hpp"
 
 
 namespace
@@ -68,8 +68,10 @@ namespace
     }
 } // namespace
 
-shapes::quadratic::quadratic(float umax, float vmax, clockwise clockwise , bool closed)
-    : m_umax(umax)
+shapes::procedural::procedural(uint32_t smoothness, uint32_t cond_bits, float umax, float vmax, clockwise clockwise , bool closed)
+    : m_smoothness(smoothness)
+    , m_cond_bits(cond_bits)
+    , m_umax(umax)
     , m_vmax(vmax)
     , m_clockwise(clockwise)
     , m_closed(closed)
@@ -77,39 +79,37 @@ shapes::quadratic::quadratic(float umax, float vmax, clockwise clockwise , bool 
 }
 
 
-void shapes::quadratic::generate(
+void shapes::procedural::generate(
     std::vector<uint8_t>& vert_buf,
-    std::vector<uint8_t>& ind_buf,
-    uint32_t smoothness,
-    uint64_t cond_bits)
+    std::vector<uint8_t>& ind_buf)
 {
     std::vector<math::vec3> vertices;
     std::vector<math::vec2> uvs;
     std::vector<math::vec3> normals;
     std::vector<math::vec3> tangents;
 
-    vertices.reserve(smoothness * smoothness);
+    vertices.reserve(m_smoothness * m_smoothness);
 
-    if (cond_bits & shape::gen_uv) {
-        uvs.reserve(smoothness * smoothness);
+    if (m_cond_bits & gen_uv) {
+        uvs.reserve(m_smoothness * m_smoothness);
     }
 
-    if (cond_bits & shape::gen_normal) {
-        normals.reserve(smoothness * smoothness);
+    if (m_cond_bits & gen_normal) {
+        normals.reserve(m_smoothness * m_smoothness);
     }
 
-    if (cond_bits & shape::gen_tangents) {
-        tangents.reserve(smoothness * smoothness);
+    if (m_cond_bits & gen_tangents) {
+        tangents.reserve(m_smoothness * m_smoothness);
     }
 
-    for (size_t x = 0; x < smoothness + 1; x++) {
-        float u = std::clamp(float(x) / float(smoothness), 0.0f, 1.0f);
+    for (size_t x = 0; x < m_smoothness + 1; x++) {
+        float u = std::clamp(float(x) / float(m_smoothness), 0.0f, 1.0f);
         if (u > m_umax) {
             continue;
         }
 
-        for (size_t y = 0; y < smoothness + 1; y++) {
-            float v = std::clamp(float(y) / float(smoothness), 0.0f, 1.0f);
+        for (size_t y = 0; y < m_smoothness + 1; y++) {
+            float v = std::clamp(float(y) / float(m_smoothness), 0.0f, 1.0f);
 
             if (v > m_umax) {
                 continue;
@@ -119,15 +119,15 @@ void shapes::quadratic::generate(
 
             vertices.emplace_back(pos);
 
-            if (cond_bits & shape::gen_uv) {
+            if (m_cond_bits & gen_uv) {
                 uvs.emplace_back(math::vec2{u, v});
             }
 
-            if (cond_bits & shape::gen_normal) {
+            if (m_cond_bits & gen_normal) {
                 normals.emplace_back(get_normal(u, v, pos));
             }
 
-            if (cond_bits & shape::gen_tangents) {
+            if (m_cond_bits & gen_tangents) {
                 tangents.emplace_back(get_tangent(u, v, pos));
             }
         }
@@ -167,11 +167,11 @@ void shapes::quadratic::generate(
         }
     }
 
-    if (cond_bits & shape::triangulate) {
+    if (m_cond_bits & triangulate) {
         if (vertices.size() <= std::numeric_limits<uint16_t>::max()) {
-            generate_indices<uint16_t>(vertices, ind_buf, smoothness + 1, m_clockwise, m_closed);
+            generate_indices<uint16_t>(vertices, ind_buf, m_smoothness + 1, m_clockwise, m_closed);
         } else {
-            generate_indices<uint32_t>(vertices, ind_buf, smoothness + 1, m_clockwise, m_closed);
+            generate_indices<uint32_t>(vertices, ind_buf, m_smoothness + 1, m_clockwise, m_closed);
         }
     }
 }

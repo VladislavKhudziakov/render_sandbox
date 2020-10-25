@@ -2,6 +2,7 @@
 
 #include "shader.hpp"
 
+#include <renderer/gl/bind_guard.hpp>
 #include <renderer/renderer.hpp>
 #include <renderer/gl/traits.hpp>
 #include <misc/misc.hpp>
@@ -37,13 +38,13 @@ renderer::gl::shader::shader(const ::renderer::shader_descriptor& descriptor)
         std::cout << log_buffer << std::endl;
     }
 
-    GLint texture_slot = 0;
+    bind_guard shader_bind(*this);
 
+    GLint texture_slot = 0;
     for (const auto& [sampler_name, sampler_tex] : m_samplers) {
         GLint loc = glGetUniformLocation(m_handler, sampler_name.c_str());
         ASSERT(loc >= 0);
         glUniform1i(loc, texture_slot++);
-        glGetError();
     }
 
     GLint max_blocks;

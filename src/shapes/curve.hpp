@@ -2,16 +2,18 @@
 
 #pragma once
 
-#include <shapes/quadratic.hpp>
+#include <shapes/procedural.hpp>
 
 #include <array>
 
 namespace shapes
 {
-    class curve : public quadratic
+    class curve : public procedural
     {
     public:
         explicit curve(
+            uint32_t smoothness,
+            uint32_t cond_bits,
             math::vec3 p0 = {0, 0, -1},
             math::vec3 p1 = {0, 1, -1.f / 3.f},
             math::vec3 p2 = {0, -1, 1.f / 3.f},

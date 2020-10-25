@@ -2,6 +2,8 @@
 
 #include "renderer.hpp"
 
+#include <misc/misc.hpp>
+
 renderer::mesh_handler renderer::gl::renderer::create_mesh(
     const ::renderer::mesh_layout_descriptor& descriptor)
 {
@@ -21,20 +23,27 @@ renderer::shader_handler renderer::gl::renderer::create_shader(
 void renderer::gl::renderer::draw(
     ::renderer::mesh_handler mesh_handler,
     ::renderer::shader_handler shader_handler,
-    uint32_t instances_count)
+    uint32_t instances_count,
+    uint32_t draw_id)
 {
     constexpr static ::renderer::shader_state default_state{};
 
     auto& shader = m_shaders[shader_handler];
 
-    bind_guard shader_bind(shader);
     auto& shader_samplers = shader.m_samplers;
+
+    bind_guard shader_bind(shader);
 
     uint32_t sampler_index = 0;
 
     for (const auto& [sampler_name, texture_index] : shader_samplers) {
         glActiveTexture(GL_TEXTURE0 + sampler_index++);
         m_textures[texture_index].bind();
+    }
+
+    auto loc = glGetUniformLocation(shader.m_handler, "DrawID");
+    if (loc >= 0) {
+        glUniform1i(loc, draw_id);
     }
 
     set_gpu_state(shader.m_state);
@@ -57,7 +66,7 @@ void renderer::gl::renderer::update(float time)
     glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &main_fb);
 
     glClearColor(0, 0, 0, 1);
-    glClearDepth(-1);
+    glClearDepth(1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     for (auto& params_list : m_params_lists) {
@@ -76,7 +85,7 @@ void renderer::gl::renderer::update(float time)
                 last_pass = command.pass;
                 break;
             case draw_command_type::draw:
-                draw(command.mesh, command.shader, command.instances_count);
+                draw(command.mesh, command.shader, command.instances_count, command.draw_id);
                 break;
         }
     }

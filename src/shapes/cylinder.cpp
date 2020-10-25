@@ -5,8 +5,8 @@
 #include <math/misc/misc.hpp>
 
 
-shapes::cylinder::cylinder(float r, float zmin, float zmax, float phi_max)
-    : quadratic(phi_max / float(M_PI * 2), 1, clockwise::ccw)
+shapes::cylinder::cylinder(uint32_t smoothness, uint32_t cond_bits, float r, float zmin, float zmax, float phi_max)
+    : procedural(smoothness, cond_bits, phi_max / float(M_PI * 2), 1, clockwise::ccw)
     , m_r(r)
     , m_zmin(zmin)
     , m_zmax(zmax)

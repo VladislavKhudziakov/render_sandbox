@@ -10,6 +10,7 @@ renderer::gl::render_pass::render_pass(const pass_descriptor& descriptor, std::v
     : m_width(descriptor.width)
     , m_height(descriptor.height)
     , m_attachments_list(descriptor.attachments)
+    , m_state(descriptor.state)
 {
     GLint old_fb;
     glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &old_fb);
@@ -23,14 +24,18 @@ renderer::gl::render_pass::render_pass(const pass_descriptor& descriptor, std::v
         m_msaa_resolve_framebuffer.emplace();
     }
 
+    auto add_attachments = [&descriptor](auto make_attachment) {
+        for (const auto& attachment : descriptor.attachments) {
+            make_attachment(attachment);
+        }
+    };
+
     size_t draw_buf_index = 0;
-    for (const auto& attachment : descriptor.attachments) {
+
+    add_attachments([&descriptor, &textures, &draw_buf_index, &draw_buffers](const attachment_descriptor& attachment) {
         auto& tex = textures[attachment.render_texture];
-
         ASSERT(tex.m_type == ::renderer::texture_type::attachment);
-
         tex.resize({descriptor.width, descriptor.height});
-
         switch (attachment.type) {
             case attachment_type::color:
                 draw_buffers.emplace_back(GL_COLOR_ATTACHMENT0 + draw_buf_index);
@@ -41,24 +46,25 @@ renderer::gl::render_pass::render_pass(const pass_descriptor& descriptor, std::v
                 glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, tex.m_handler, 0);
                 break;
         }
-    }
+    });
+
 
     glDrawBuffers(draw_buffers.size(), draw_buffers.data());
 
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, *m_msaa_resolve_framebuffer);
-
-    m_renderbuffers.reserve(descriptor.attachments.size());
+    ASSERT(glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
 
     if (!m_msaa_resolve_framebuffer.has_value()) {
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, old_fb);
         return;
     }
 
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, *m_msaa_resolve_framebuffer);
+    m_renderbuffers.reserve(descriptor.attachments.size());
+
     draw_buf_index = 0;
     draw_buffers.clear();
 
-
-    for (const auto& attachment : descriptor.attachments) {
+    add_attachments([&descriptor, &textures, &draw_buf_index, &draw_buffers, this](const attachment_descriptor& attachment) {
         auto& tex = textures[attachment.render_texture];
         const auto [type, int_fmt, fmt] = tex.m_storage_data;
         auto& curr_rb = m_renderbuffers.emplace_back(descriptor.state.msaa, fmt, descriptor.width, descriptor.height);
@@ -74,22 +80,25 @@ renderer::gl::render_pass::render_pass(const pass_descriptor& descriptor, std::v
                 break;
             }
         }
-    }
+    });
 
     glDrawBuffers(draw_buffers.size(), draw_buffers.data());
+
+    ASSERT(glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
+
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, old_fb);
 }
 
 
 void renderer::gl::render_pass::begin()
 {
-    glViewport(0, 0, m_width, m_height);
-
     if (m_msaa_resolve_framebuffer) {
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, *m_msaa_resolve_framebuffer);
     } else {
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_framebuffer_handler);
     }
+
+    glViewport(0, 0, m_width, m_height);
 
     if (m_state.start == ::renderer::pass_start_behavior::clear) {
         clear_pass();

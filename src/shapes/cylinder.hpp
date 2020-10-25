@@ -2,14 +2,14 @@
 
 #pragma once
 
-#include <shapes/quadratic.hpp>
+#include <shapes/procedural.hpp>
 
 namespace shapes
 {
-    class cylinder : public quadratic
+    class cylinder : public procedural
     {
     public:
-        explicit cylinder(float r = 1, float zmin = -1, float zmax = 1, float phi_max = M_PI * 2);
+        explicit cylinder(uint32_t smoothness, uint32_t cond_bits, float r = 1, float zmin = -1, float zmax = 1, float phi_max = M_PI * 2);
         ~cylinder() override = default;
 
     protected:

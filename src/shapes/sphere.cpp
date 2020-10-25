@@ -5,8 +5,8 @@
 #include <math/misc/misc.hpp>
 
 
-shapes::sphere::sphere(float radius, float phi_max, float theta_max)
-    : quadratic(phi_max / float(M_PI * 2), theta_max / float(M_PI))
+shapes::sphere::sphere(uint32_t smoothness, uint32_t cond_bits, float radius, float phi_max, float theta_max)
+    : procedural(smoothness, cond_bits, phi_max / float(M_PI * 2), theta_max / float(M_PI))
     , m_radius(radius)
     , m_phi_max(phi_max)
     , m_theta_max(theta_max)

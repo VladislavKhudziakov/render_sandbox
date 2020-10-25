@@ -5,12 +5,14 @@
 #include <math/misc/misc.hpp>
 
 shapes::curve::curve(
+    uint32_t smoothness,
+    uint32_t cond_bits,
     math::vec3 p0,
     math::vec3 p1,
     math::vec3 p2,
     math::vec3 p3,
     float width)
-    : quadratic(1, 1, clockwise::cw, false)
+    : procedural(smoothness, cond_bits, 1, 1, clockwise::cw, false)
     , m_points{p0, p1, p2, p3}
     , m_width(width)
 {

@@ -68,6 +68,13 @@ namespace renderer
         trilinear
     };
 
+    enum class texture_wrap
+    {
+        point,
+        bilinear,
+        trilinear
+    };
+
     enum class parameter_type
     {
         vec4,
@@ -185,6 +192,7 @@ namespace renderer
         shader_handler shader{null};
         pass_handler pass{null};
         uint32_t instances_count{1};
+        uint32_t draw_id{0};
     };
 
 
@@ -199,7 +207,7 @@ namespace renderer
     {
         pass_start_behavior start = pass_start_behavior::clear;
         pass_finish_behavior finish = pass_finish_behavior::store;
-        float clear_color[4]{0.2, 0.3, 0.4, 1};
+        float clear_color[4]{0, 0, 0, 1};
         float clear_depth = 1;
         uint32_t msaa = 1;
     };

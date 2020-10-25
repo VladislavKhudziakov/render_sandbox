@@ -26,7 +26,8 @@ renderer::gl::texture::texture(const ::renderer::texture_descriptor& desc)
             break;
         case texture_type::attachment:
             resize(desc.size);
-            break;
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+            return;
     }
 
     if (desc.mips) {
@@ -123,6 +124,9 @@ void renderer::gl::texture::resize(const ::renderer::texture_size& size)
     const auto [type, int_fmt, fmt] = m_storage_data;
     ASSERT(m_type == ::renderer::texture_type::attachment);
     glTexImage2D(m_gl_type, 0, int_fmt, size.width, size.height, 0, fmt, type, nullptr);
+
+    glTexParameteri(m_gl_type, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(m_gl_type, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 }
 
 

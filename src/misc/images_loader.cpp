@@ -21,9 +21,9 @@ renderer::texture_descriptor misc::images_loader::load_2d_texture(const std::str
             }
         });
 
-    std::filesystem::path p(file);
-    std::cout << std::filesystem::absolute(std::filesystem::path(".")) << std::endl;
-    auto f = std::filesystem::is_regular_file(file);
+    if (image == nullptr) {
+        throw std::runtime_error("invalid image");
+    }
 
     switch (c) {
         case STBI_grey:

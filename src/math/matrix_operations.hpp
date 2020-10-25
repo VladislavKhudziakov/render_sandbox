@@ -159,6 +159,27 @@ namespace math
         return mat;
     }
 
+    inline mat4 ortho(float width, float height, float near, float far)
+    {
+        float right = width * 0.5f;
+        float left = -right;
+
+        float top = height * 0.5f;
+        float bottom = -top;
+
+        mat4 mat;
+
+        mat[0][0] = 2 / (right - left);
+        mat[0][3] = -(right + left) / (right - left);
+        mat[1][1] = 2 / (top - bottom);
+        mat[1][3] = -(top + bottom) / (top - bottom);
+        mat[2][2] = -2 / (far - near);
+        mat[2][3] = -(far + near) / (far - near);
+        mat[3][3] = 1;
+
+        return mat;
+    }
+
     inline float radians(float degs)
     {
         return degs * float(M_PI) / 180.f;

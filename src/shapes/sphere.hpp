@@ -2,16 +2,16 @@
 
 #pragma once
 
-#include <shapes/quadratic.hpp>
+#include <shapes/procedural.hpp>
 #include <math/vector.hpp>
 #include <cmath>
 
 namespace shapes
 {
-    class sphere : public quadratic
+    class sphere : public procedural
     {
     public:
-        explicit sphere(float radius = 1, float phi_max = M_PI * 2, float theta_max = M_PI);
+        explicit sphere(uint32_t smoothness, uint32_t cond_bits, float radius = 1, float phi_max = M_PI * 2, float theta_max = M_PI);
         ~sphere() override = default;
 
     protected:
