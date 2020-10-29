@@ -5,6 +5,7 @@
 #include <renderer/gl/raii_storage.hpp>
 #include <renderer/gl/texture.hpp>
 #include <renderer/renderer.hpp>
+#include <memory/pool_factory.hpp>
 
 #include <cinttypes>
 #include <glad/glad.h>
@@ -59,6 +60,7 @@ namespace renderer::gl
         class renderbuffer
         {
             friend class ::renderer::gl::render_pass;
+
         public:
             renderbuffer(uint32_t msaa, GLenum format, size_t width = 1, size_t height = 1);
 
@@ -66,6 +68,7 @@ namespace renderer::gl
             void unbind();
 
             void resize(size_t width, size_t height);
+
         private:
             renderbuffer_handler m_handler;
             GLenum m_format;
@@ -79,8 +82,8 @@ namespace renderer::gl
         friend class renderer;
 
     public:
-        render_pass(const pass_descriptor&, std::vector<gl::texture>&);
-        void resize(size_t width, size_t height, std::vector<gl::texture>&);
+        render_pass(const pass_descriptor&, memory::pool_view<texture>& textures);
+        void resize(size_t width, size_t height, memory::pool_view<texture>& textures);
 
         void begin();
         void end();

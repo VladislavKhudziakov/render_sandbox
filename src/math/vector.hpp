@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <misc/misc.hpp>
+#include <misc/debug.hpp>
 
 #include <cstddef>
 #include <cmath>

@@ -3,10 +3,11 @@
 #include "render_pass.hpp"
 
 #include <renderer/renderer.hpp>
-#include <misc/misc.hpp>
+#include <misc/debug.hpp>
+#include <memory/pool_factory.hpp>
 
 
-renderer::gl::render_pass::render_pass(const pass_descriptor& descriptor, std::vector<gl::texture>& textures)
+renderer::gl::render_pass::render_pass(const pass_descriptor& descriptor, memory::pool_view<texture>& textures)
     : m_width(descriptor.width)
     , m_height(descriptor.height)
     , m_attachments_list(descriptor.attachments)
@@ -139,11 +140,11 @@ void renderer::gl::render_pass::clear_pass()
 }
 
 
-void renderer::gl::render_pass::resize(size_t width, size_t height, std::vector<gl::texture>& textures_list)
+void renderer::gl::render_pass::resize(size_t width, size_t height, memory::pool_view<texture>& textures)
 {
     if (m_width != width || m_height != height) {
         for (const auto& attachment : m_attachments_list) {
-            auto& texture = textures_list[attachment.render_texture];
+            auto& texture = textures[attachment.render_texture];
             ASSERT(texture.m_type == ::renderer::texture_type::attachment);
             texture.resize({width, height});
         }

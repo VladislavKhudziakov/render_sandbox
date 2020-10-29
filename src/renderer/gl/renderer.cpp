@@ -2,21 +2,19 @@
 
 #include "renderer.hpp"
 
-#include <misc/misc.hpp>
+#include <misc/opengl.hpp>
 
 renderer::mesh_handler renderer::gl::renderer::create_mesh(
     const ::renderer::mesh_layout_descriptor& descriptor)
 {
-    m_vaos.emplace_back(descriptor);
-    return m_vaos.size() - 1;
+    return m_factory.create<vao>(descriptor);
 }
 
 
 renderer::shader_handler renderer::gl::renderer::create_shader(
     const ::renderer::shader_descriptor& descriptor)
 {
-    m_shaders.emplace_back(descriptor);
-    return m_shaders.size() - 1;
+    return m_factory.create<shader>(descriptor);
 }
 
 
@@ -28,7 +26,8 @@ void renderer::gl::renderer::draw(
 {
     constexpr static ::renderer::shader_state default_state{};
 
-    auto& shader = m_shaders[shader_handler];
+    auto shader_view = m_factory.view<shader>();
+    auto& shader = shader_view[shader_handler];
 
     auto& shader_samplers = shader.m_samplers;
 
@@ -36,9 +35,12 @@ void renderer::gl::renderer::draw(
 
     uint32_t sampler_index = 0;
 
+    auto textures_view = m_factory.view<texture>();
+
     for (const auto& [sampler_name, texture_index] : shader_samplers) {
         glActiveTexture(GL_TEXTURE0 + sampler_index++);
-        m_textures[texture_index].bind();
+        ASSERT(!textures_view.get_pool()->is_id_expired(texture_index));
+        textures_view[texture_index].bind();
     }
 
     auto loc = glGetUniformLocation(shader.m_handler, "DrawID");
@@ -48,10 +50,12 @@ void renderer::gl::renderer::draw(
 
     set_gpu_state(shader.m_state);
 
+    auto mesh_view = m_factory.view<vao>();
+
     if (instances_count == 1) {
-        m_vaos[mesh_handler].draw();
+        mesh_view[mesh_handler].draw();
     } else {
-        m_vaos[mesh_handler].draw_instanced(instances_count);
+        mesh_view[mesh_handler].draw_instanced(instances_count);
     }
 
     set_gpu_state(default_state);
@@ -69,19 +73,25 @@ void renderer::gl::renderer::update(float time)
     glClearDepth(1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    for (auto& params_list : m_params_lists) {
-        params_list.load_data_to_gpu();
+    auto params_list_view = m_factory.view<parameters_list>();
+    auto params_lists_impl = params_list_view.get_pool()->objects_view();
+
+    for (auto& params_list : params_lists_impl) {
+        params_list->load_data_to_gpu();
     }
 
     int32_t last_pass = -1;
+
+    auto passes_view = m_factory.view<render_pass>();
 
     for (const auto& command : m_commands_buffer) {
         switch (command.type) {
             case draw_command_type::pass:
                 if (last_pass >= 0) {
-                    m_passes[last_pass].end();
+                    passes_view[last_pass].end();
                 }
-                m_passes[command.pass].begin();
+                ASSERT(!m_factory.view<render_pass>().get_pool()->is_id_expired(command.pass));
+                passes_view[command.pass].begin();
                 last_pass = command.pass;
                 break;
             case draw_command_type::draw:
@@ -91,10 +101,10 @@ void renderer::gl::renderer::update(float time)
     }
 
     if (last_pass >= 0) {
-        auto& src_pass = m_passes[last_pass];
-        m_passes[last_pass].end();
+        auto& src_pass = passes_view[last_pass];
+        passes_view[last_pass].end();
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, main_fb);
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, m_passes[last_pass].m_framebuffer_handler);
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, passes_view[last_pass].m_framebuffer_handler);
         glBlitFramebuffer(0, 0, src_pass.m_width, src_pass.m_height, viewport[0], viewport[1], viewport[2], viewport[3], GL_COLOR_BUFFER_BIT, GL_LINEAR);
     }
 
@@ -105,8 +115,7 @@ void renderer::gl::renderer::update(float time)
 renderer::texture_handler renderer::gl::renderer::create_texture(
     const ::renderer::texture_descriptor& descriptor)
 {
-    m_textures.emplace_back(descriptor);
-    return m_textures.size() - 1;
+    return m_factory.create<texture>(descriptor);
 }
 
 
@@ -115,16 +124,17 @@ void renderer::gl::renderer::set_shader_sampler(
     ::renderer::texture_handler texture_handler,
     const std::string& sampler_name)
 {
-    auto& shader = m_shaders[shader_handler];
+    auto shader_view = m_factory.view<shader>();
+
+    auto& shader = shader_view[shader_handler];
     shader.m_samplers[sampler_name] = texture_handler;
 }
 
 
 ::renderer::parameters_list_handler renderer::gl::renderer::create_parameters_list(const ::renderer::parameters_list_descriptor& descriptor)
 {
-    auto& params_list = m_params_lists.emplace_back(descriptor);
-
-    const auto binding_index = m_params_lists.size() - 1;
+    auto binding_index = m_factory.create<parameters_list>(descriptor);
+    auto& params_list = m_factory.view<parameters_list>()[binding_index];
     glBindBufferBase(GL_UNIFORM_BUFFER, binding_index, params_list.m_gpu_storage->m_handler);
 
     return binding_index;
@@ -133,7 +143,7 @@ void renderer::gl::renderer::set_shader_sampler(
 
 void renderer::gl::renderer::set_parameter_data(::renderer::parameters_list_handler handler, uint32_t param_index, void* data)
 {
-    m_params_lists[handler].set_parameter_data(param_index, data);
+    m_factory.view<parameters_list>()[handler].set_parameter_data(param_index, data);
 }
 
 
@@ -143,7 +153,8 @@ void renderer::gl::renderer::destroy_mesh(::renderer::mesh_handler handler)
         return;
     }
 
-    m_vaos.erase(m_vaos.begin() + handler);
+    ASSERT(!m_factory.view<vao>().get_pool()->is_id_expired(handler));
+    m_factory.destroy<vao>(handler);
 }
 
 
@@ -153,7 +164,8 @@ void renderer::gl::renderer::destroy_shader(::renderer::shader_handler handler)
         return;
     }
 
-    m_shaders.erase(m_shaders.begin() + handler);
+    ASSERT(!m_factory.view<shader>().get_pool()->is_id_expired(handler));
+    m_factory.destroy<shader>(handler);
 }
 
 
@@ -163,7 +175,8 @@ void renderer::gl::renderer::destroy_texture(::renderer::texture_handler handler
         return;
     }
 
-    m_textures.erase(m_textures.begin() + handler);
+    ASSERT(!m_factory.view<texture>().get_pool()->is_id_expired(handler));
+    return m_factory.destroy<texture>(handler);
 }
 
 
@@ -173,7 +186,7 @@ void renderer::gl::renderer::destroy_parameters_list(::renderer::parameters_list
         return;
     }
 
-    m_params_lists.erase(m_params_lists.begin() + handler);
+    m_factory.destroy<parameters_list>(handler);
 }
 
 
@@ -246,8 +259,8 @@ void renderer::gl::renderer::set_gpu_state(const ::renderer::shader_state& state
 
 renderer::pass_handler renderer::gl::renderer::create_pass(const ::renderer::pass_descriptor& descriptor)
 {
-    m_passes.emplace_back(descriptor, m_textures);
-    return m_passes.size() - 1;
+    auto textures_view = m_factory.view<texture>();
+    return m_factory.create<render_pass>(descriptor, textures_view);
 }
 
 
@@ -257,14 +270,16 @@ void renderer::gl::renderer::destroy_pass(::renderer::pass_handler handler)
         return;
     }
 
-    auto it = m_passes.begin() + handler;
-    m_passes.erase(it);
+    ASSERT(!m_factory.view<render_pass>().get_pool()->is_id_expired(handler));
+    m_factory.destroy<render_pass>(handler);
 }
 
 
 void renderer::gl::renderer::resize_pass(::renderer::pass_handler handler, size_t w, size_t h)
 {
-    m_passes[handler].resize(w, h, m_textures);
+    ASSERT(!m_factory.view<render_pass>().get_pool()->is_id_expired(handler));
+    auto textures_view = m_factory.view<texture>();
+    m_factory.view<render_pass>()[handler].resize(w, h, textures_view);
 }
 
 
@@ -273,5 +288,5 @@ void renderer::gl::renderer::load_texture_data(
     ::renderer::texture_size size,
     void* data)
 {
-    m_textures[handler].load(size, data);
+    m_factory.view<texture>()[handler].load(size, data);
 }

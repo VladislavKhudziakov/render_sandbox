@@ -4,7 +4,7 @@
 
 #include <renderer/gl/traits.hpp>
 #include <renderer/gl/bind_guard.hpp>
-#include <misc/misc.hpp>
+#include <misc/opengl.hpp>
 
 
 renderer::gl::texture::texture(const ::renderer::texture_descriptor& desc)

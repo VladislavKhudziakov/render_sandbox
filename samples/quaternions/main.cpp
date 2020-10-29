@@ -14,8 +14,8 @@
 #include <shapes/curve.hpp>
 
 #include <scene/mesh_instance.hpp>
-#include <misc/misc.hpp>
-#include <glad/glad.h>
+#include <misc/opengl.hpp>
+#include <misc/types_traits.hpp>
 
 // clang-format off
 constexpr float vertices[] = {
@@ -370,14 +370,6 @@ int main()
     };
 
     const auto shadow_debug_mesh = r->create_mesh(shadow_debug_mld);
-
-//    constexpr float light_pos[] = {3, 3, 3};
-//
-//    renderer::mesh_layout_descriptor mld {
-//        .vertex_attributes = {{.data_type = renderer::data_type::f32, .elements_count = 3}},
-//        .vertex_data = {reinterpret_cast<const uint8_t*>(light_pos), reinterpret_cast<const uint8_t*>(light_pos) + sizeof(light_pos)},
-//        .topology = renderer::geometry_topology::points
-//    };
 
     const auto instance_params = r->create_parameters_list(shader_params);
     const auto shadow_params = r->create_parameters_list(shadow_params_descriptor);

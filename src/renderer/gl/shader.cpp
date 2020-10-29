@@ -5,7 +5,6 @@
 #include <renderer/gl/bind_guard.hpp>
 #include <renderer/renderer.hpp>
 #include <renderer/gl/traits.hpp>
-#include <misc/misc.hpp>
 
 #include <iostream>
 

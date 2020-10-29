@@ -8,6 +8,8 @@
 #include <renderer/gl/texture.hpp>
 #include <renderer/gl/parameters_list.hpp>
 #include <renderer/gl/render_pass.hpp>
+#include <memory/pool.hpp>
+#include <memory/pool_factory.hpp>
 
 
 namespace renderer::gl
@@ -42,12 +44,7 @@ namespace renderer::gl
         void draw(mesh_handler mesh_handler, shader_handler shader_handler, uint32_t instances_count = 1, uint32_t draw_id = 0);
         void set_gpu_state(const ::renderer::shader_state&);
 
-        std::vector<vao> m_vaos;
-        std::vector<shader> m_shaders;
-        std::vector<texture> m_textures;
-        std::vector<parameters_list> m_params_lists;
-        std::vector<render_pass> m_passes;
-
+        memory::pool_factory<renderer> m_factory;
         std::vector<::renderer::draw_command> m_commands_buffer;
     };
 } // namespace renderer::gl

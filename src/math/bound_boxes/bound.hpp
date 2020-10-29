@@ -3,7 +3,7 @@
 #pragma once
 
 #include <math/vector.hpp>
-#include <misc/misc.hpp>
+#include <misc/opengl.hpp>
 
 #include <algorithm>
 

@@ -4,7 +4,7 @@
 #pragma once
 
 #include <renderer/renderer.hpp>
-#include <misc/misc.hpp>
+#include <misc/debug.hpp>
 
 #include <glad/glad.h>
 
