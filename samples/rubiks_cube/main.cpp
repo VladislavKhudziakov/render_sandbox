@@ -28,12 +28,14 @@ int main()
     camera.height = 600;
 
     auto* r = window.get_renderer();
+
+    auto cube = std::make_unique<::rubiks_cube::rubiks_cube>(r, curr_cube_size);
     rubiks_cube::indication_quad quad(r);
 
     quad.scale = {0.3, 0.3, 0.3};
     quad.position = {0.75, 0.75};
 
-    auto cube = std::make_unique<::rubiks_cube::rubiks_cube>(r, curr_cube_size);
+
 
     window.register_key_handler([&cube, r](::renderer::key_event e) {
         if (e.action == ::renderer::action_type::press) {
