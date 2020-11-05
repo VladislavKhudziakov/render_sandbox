@@ -4,7 +4,8 @@
 
 #include <math/misc/misc.hpp>
 
-shapes::curve::curve(
+renderer::scene::shapes::curve::curve(
+    ::renderer::renderer* renderer,
     uint32_t smoothness,
     uint32_t cond_bits,
     math::vec3 p0,
@@ -12,14 +13,14 @@ shapes::curve::curve(
     math::vec3 p2,
     math::vec3 p3,
     float width)
-    : procedural(smoothness, cond_bits, 1, 1, clockwise::cw, false)
+    : procedural(renderer, smoothness, cond_bits, 1, 1, clockwise::cw, false)
     , m_points{p0, p1, p2, p3}
     , m_width(width)
 {
 }
 
 
-math::vec3 shapes::curve::get_position(float u, float v)
+math::vec3 renderer::scene::shapes::curve::get_position(float u, float v)
 {
     float x = math::misc::lerp(-m_width * 0.5, m_width * 0.5, u);
 
@@ -38,7 +39,7 @@ math::vec3 shapes::curve::get_position(float u, float v)
 }
 
 
-math::vec3 shapes::curve::get_normal(float u, float v, math::vec3 position)
+math::vec3 renderer::scene::shapes::curve::get_normal(float u, float v, math::vec3 position)
 {
     auto dfdv = get_tangent(u, v, position);
     auto dfdu = math::vec3{-1, 0, 0};
@@ -47,7 +48,7 @@ math::vec3 shapes::curve::get_normal(float u, float v, math::vec3 position)
 }
 
 
-math::vec3 shapes::curve::get_tangent(float u, float v, math::vec3 position)
+math::vec3 renderer::scene::shapes::curve::get_tangent(float u, float v, math::vec3 position)
 {
     float one_minus_v = 1 - v;
     float one_minus_v_pow2 = one_minus_v * one_minus_v;

@@ -2,16 +2,17 @@
 
 #pragma once
 
-#include <shapes/procedural.hpp>
+#include <scene/assets/shapes/procedural.hpp>
 
 #include <array>
 
-namespace shapes
+namespace renderer::scene::shapes
 {
     class curve : public procedural
     {
     public:
         explicit curve(
+            ::renderer::renderer* renderer,
             uint32_t smoothness,
             uint32_t cond_bits,
             math::vec3 p0 = {0, 0, -1},
@@ -31,4 +32,4 @@ namespace shapes
         std::array<math::vec3, 4> m_points;
         float m_width;
     };
-} // namespace shapes
+} // namespace renderer::scene::shapes

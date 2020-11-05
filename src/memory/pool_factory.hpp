@@ -22,11 +22,15 @@ namespace memory
 
         ObjectType& operator[](size_t i)
         {
+            ASSERT(m_pool != nullptr);
+            ASSERT(!m_pool->is_id_expired(i));
             return m_pool->operator[](i);
         }
 
         const ObjectType& operator[](size_t i) const
         {
+            ASSERT(m_pool != nullptr);
+            ASSERT(!m_pool->is_id_expired(i));
             return m_pool->operator[](i);
         }
 
@@ -91,11 +95,18 @@ namespace memory
     public:
         inline static size_t pools_size{0};
 
+        template<typename ObjectType>
+        size_t get_type_id() const
+        {
+            using T = std::remove_reference_t<std::remove_cv_t<ObjectType>>;
+            return misc::type_traits::type_id<pool_factory>::template get<T>();
+        }
+
         template<typename ObjectType, typename... Args>
         size_t create(Args&&... args)
         {
             using T = std::remove_reference_t<std::remove_cv_t<ObjectType>>;
-            const auto index = misc::type_traits::type_id<pool_factory>::template get<T>();
+            const auto index = get_type_id<T>();
 
             if (index >= m_pools_list.size()) {
                 m_pools_list.resize(index + 1);
@@ -120,8 +131,23 @@ namespace memory
             pool->destroy(id);
         }
 
+        void destroy(size_t type_id, size_t id)
+        {
+            if (type_id >= m_pools_list.size()) {
+                return;
+            }
+
+            auto& pool = m_pools_list[type_id];
+
+            if (pool == nullptr) {
+                return;
+            }
+
+            pool->destroy(id);
+        }
+
         template<typename ObjectType>
-        pool_view<ObjectType> view()
+        pool_view<ObjectType> view() const
         {
             return pool_view<ObjectType>{get_pool<ObjectType>()};
         }
@@ -139,6 +165,8 @@ namespace memory
             {
                 return static_cast<pool_wrapper<T>*>(this);
             }
+
+            virtual void destroy(size_t) = 0;
         };
 
         template<typename Object>
@@ -149,11 +177,16 @@ namespace memory
                 return std::make_unique<pool_wrapper>();
             }
 
+            void destroy(size_t id) override
+            {
+                pool.destroy(id);
+            }
+
             pool<Object> pool;
         };
 
         template<typename ObjectType>
-        pool<ObjectType>* get_pool()
+        pool<ObjectType>* get_pool() const
         {
             using T = std::remove_reference_t<std::remove_cv_t<ObjectType>>;
             const auto index = misc::type_traits::type_id<pool_factory>::template get<T>();

@@ -1,6 +1,9 @@
 
 
 #include "procedural.hpp"
+#include <renderer/renderer.hpp>
+
+#include <vector>
 
 
 namespace
@@ -8,8 +11,9 @@ namespace
     template<typename IndexType>
     void generate_indices(
         std::vector<math::vec3>& vertices,
-        std::vector<uint8_t>& res, size_t total,
-        shapes::clockwise clockwise,
+        std::vector<uint8_t>& res,
+        size_t total,
+        renderer::scene::shapes::clockwise clockwise,
         bool closed = true)
     {
         std::vector<IndexType> indices;
@@ -21,7 +25,7 @@ namespace
 
         for (size_t x = 0; x < total - 1; x++) {
             for (size_t y = 0; y < total - 1; ++y) {
-                if (clockwise == shapes::clockwise::cw) {
+                if (clockwise == renderer::scene::shapes::clockwise::cw) {
                     indices.emplace_back(to_flat_index(x, y + 1, total));
                     indices.emplace_back(to_flat_index(x, y, total));
                     indices.emplace_back(to_flat_index(x + 1, y, total));
@@ -43,7 +47,7 @@ namespace
 
         if (closed) {
             for (size_t y = 0; y < total - 1; ++y) {
-                if (clockwise == shapes::clockwise::cw) {
+                if (clockwise == renderer::scene::shapes::clockwise::cw) {
                     indices.emplace_back(to_flat_index(total - 1, y + 1, total));
                     indices.emplace_back(to_flat_index(total - 1, y, total));
                     indices.emplace_back(to_flat_index(0, y, total));
@@ -68,8 +72,16 @@ namespace
     }
 } // namespace
 
-shapes::procedural::procedural(uint32_t smoothness, uint32_t cond_bits, float umax, float vmax, clockwise clockwise , bool closed)
-    : m_smoothness(smoothness)
+renderer::scene::shapes::procedural::procedural(
+    ::renderer::renderer* r,
+    uint32_t smoothness,
+    uint32_t cond_bits,
+    float umax,
+    float vmax,
+    clockwise clockwise,
+    bool closed)
+    : shape(r)
+    , m_smoothness(smoothness)
     , m_cond_bits(cond_bits)
     , m_umax(umax)
     , m_vmax(vmax)
@@ -78,28 +90,34 @@ shapes::procedural::procedural(uint32_t smoothness, uint32_t cond_bits, float um
 {
 }
 
-
-void shapes::procedural::generate(
-    std::vector<uint8_t>& vert_buf,
-    std::vector<uint8_t>& ind_buf)
+void renderer::scene::shapes::procedural::create_gpu_resources()
 {
+    ::renderer::mesh_layout_descriptor mld;
+    mld.vertex_attributes.reserve(4);
+    std::vector<uint8_t>& vert_buf = mld.vertex_data;
+    std::vector<uint8_t>& ind_buf = mld.index_data;
+
     std::vector<math::vec3> vertices;
     std::vector<math::vec2> uvs;
     std::vector<math::vec3> normals;
     std::vector<math::vec3> tangents;
 
     vertices.reserve(m_smoothness * m_smoothness);
+    mld.vertex_attributes.emplace_back(::renderer::vertex_attribute{.data_type = ::renderer::data_type::f32, .elements_count = 3});
 
     if (m_cond_bits & gen_uv) {
         uvs.reserve(m_smoothness * m_smoothness);
+        mld.vertex_attributes.emplace_back(::renderer::vertex_attribute{.data_type = ::renderer::data_type::f32, .elements_count = 2});
     }
 
     if (m_cond_bits & gen_normal) {
         normals.reserve(m_smoothness * m_smoothness);
+        mld.vertex_attributes.emplace_back(::renderer::vertex_attribute{.data_type = ::renderer::data_type::f32, .elements_count = 3});
     }
 
     if (m_cond_bits & gen_tangents) {
         tangents.reserve(m_smoothness * m_smoothness);
+        mld.vertex_attributes.emplace_back(::renderer::vertex_attribute{.data_type = ::renderer::data_type::f32, .elements_count = 3});
     }
 
     for (size_t x = 0; x < m_smoothness + 1; x++) {
@@ -174,4 +192,6 @@ void shapes::procedural::generate(
             generate_indices<uint32_t>(vertices, ind_buf, m_smoothness + 1, m_clockwise, m_closed);
         }
     }
+
+    handler = m_renderer->create_mesh(mld);
 }

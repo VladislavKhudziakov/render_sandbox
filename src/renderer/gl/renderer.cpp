@@ -39,7 +39,6 @@ void renderer::gl::renderer::draw(
 
     for (const auto& [sampler_name, texture_index] : shader_samplers) {
         glActiveTexture(GL_TEXTURE0 + sampler_index++);
-        ASSERT(!textures_view.get_pool()->is_id_expired(texture_index));
         textures_view[texture_index].bind();
     }
 
@@ -90,7 +89,6 @@ void renderer::gl::renderer::update(float time)
                 if (last_pass >= 0) {
                     passes_view[last_pass].end();
                 }
-                ASSERT(!m_factory.view<render_pass>().get_pool()->is_id_expired(command.pass));
                 passes_view[command.pass].begin();
                 last_pass = command.pass;
                 break;
@@ -153,7 +151,6 @@ void renderer::gl::renderer::destroy_mesh(::renderer::mesh_handler handler)
         return;
     }
 
-    ASSERT(!m_factory.view<vao>().get_pool()->is_id_expired(handler));
     m_factory.destroy<vao>(handler);
 }
 
@@ -164,7 +161,6 @@ void renderer::gl::renderer::destroy_shader(::renderer::shader_handler handler)
         return;
     }
 
-    ASSERT(!m_factory.view<shader>().get_pool()->is_id_expired(handler));
     m_factory.destroy<shader>(handler);
 }
 
@@ -175,7 +171,6 @@ void renderer::gl::renderer::destroy_texture(::renderer::texture_handler handler
         return;
     }
 
-    ASSERT(!m_factory.view<texture>().get_pool()->is_id_expired(handler));
     return m_factory.destroy<texture>(handler);
 }
 
@@ -270,14 +265,12 @@ void renderer::gl::renderer::destroy_pass(::renderer::pass_handler handler)
         return;
     }
 
-    ASSERT(!m_factory.view<render_pass>().get_pool()->is_id_expired(handler));
     m_factory.destroy<render_pass>(handler);
 }
 
 
 void renderer::gl::renderer::resize_pass(::renderer::pass_handler handler, size_t w, size_t h)
 {
-    ASSERT(!m_factory.view<render_pass>().get_pool()->is_id_expired(handler));
     auto textures_view = m_factory.view<texture>();
     m_factory.view<render_pass>()[handler].resize(w, h, textures_view);
 }

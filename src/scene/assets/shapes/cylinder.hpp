@@ -2,14 +2,22 @@
 
 #pragma once
 
-#include <shapes/procedural.hpp>
+#include <scene/assets/shapes/procedural.hpp>
 
-namespace shapes
+namespace renderer::scene::shapes
 {
     class cylinder : public procedural
     {
     public:
-        explicit cylinder(uint32_t smoothness, uint32_t cond_bits, float r = 1, float zmin = -1, float zmax = 1, float phi_max = M_PI * 2);
+        explicit cylinder(
+            ::renderer::renderer* renderer,
+            uint32_t smoothness,
+            uint32_t cond_bits,
+            float r = 1,
+            float zmin = -1,
+            float zmax = 1,
+            float phi_max = M_PI * 2);
+
         ~cylinder() override = default;
 
     protected:
@@ -24,4 +32,4 @@ namespace shapes
         float m_zmax;
         float m_phi_max;
     };
-} // namespace shapes
+} // namespace renderer::scene::shapes

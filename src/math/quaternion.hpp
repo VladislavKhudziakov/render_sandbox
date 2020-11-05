@@ -109,7 +109,7 @@ namespace math
         return adj / len_squared;
     }
 
-    math::mat4 to_matrix(quaternion q)
+    inline math::mat4 to_matrix(quaternion q)
     {
         mat4 res;
 
@@ -128,7 +128,7 @@ namespace math
         return res;
     }
 
-    quaternion slerp(quaternion a, quaternion b, float t)
+    inline quaternion slerp(quaternion a, quaternion b, float t)
     {
         const auto c = dot(a, b);
         if (c > .9995f)
@@ -141,7 +141,7 @@ namespace math
         }
     }
 
-    quaternion quaternion_rotation(math::vec3 v, float angle)
+    inline quaternion quaternion_rotation(math::vec3 v, float angle)
     {
         angle *= 0.5;
         return {sinf(angle) * v, cosf(angle)};

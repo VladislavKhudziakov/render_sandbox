@@ -2,16 +2,23 @@
 
 #pragma once
 
-#include <shapes/procedural.hpp>
+#include <scene/assets/shapes/procedural.hpp>
 #include <math/vector.hpp>
 #include <cmath>
 
-namespace shapes
+namespace renderer::scene::shapes
 {
     class sphere : public procedural
     {
     public:
-        explicit sphere(uint32_t smoothness, uint32_t cond_bits, float radius = 1, float phi_max = M_PI * 2, float theta_max = M_PI);
+        explicit sphere(
+            ::renderer::renderer*,
+            uint32_t smoothness,
+            uint32_t cond_bits,
+            float radius = 1,
+            float phi_max = M_PI * 2,
+            float theta_max = M_PI);
+
         ~sphere() override = default;
 
     protected:
@@ -24,4 +31,4 @@ namespace shapes
         float m_phi_max;
         float m_theta_max;
     };
-} // namespace shapes
+} // namespace renderer::scene::shapes

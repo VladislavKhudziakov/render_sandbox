@@ -79,7 +79,7 @@ namespace memory
                 return;
             } else {
                 m_free_objects.emplace_back(id);
-                m_data_pointer[id].~ObjectType();
+                std::launder(m_data_pointer + id)->~ObjectType();
             }
         }
 
