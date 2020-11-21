@@ -3,6 +3,7 @@
 #include "parameters_list.hpp"
 
 #include <renderer/gl/traits.hpp>
+#include <cstring>
 
 
 renderer::gl::parameters_list::parameters_list(const ::renderer::parameters_list_descriptor& descriptor)

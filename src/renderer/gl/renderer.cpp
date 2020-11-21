@@ -283,3 +283,9 @@ void renderer::gl::renderer::load_texture_data(
 {
     m_factory.view<texture>()[handler].load(size, data);
 }
+
+
+void renderer::gl::renderer::clear()
+{
+    m_factory.clear();
+}

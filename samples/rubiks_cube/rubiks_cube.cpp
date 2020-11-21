@@ -467,9 +467,9 @@ void rubiks_cube::rubiks_cube::upload_cube_faces_texture_data()
         auto& cube = m_cubes[i];
 
         for (const auto& face : cube.faces) {
-            auto index = abs(face.normal.x) > 0 ? face.normal.x * 0.5 + 0.5 : 0;
-            index += abs(face.normal.y) > 0 ? 2 + face.normal.y * 0.5 + 0.5 : 0;
-            index += abs(face.normal.z) > 0 ? 4 + face.normal.z * 0.5 + 0.5 : 0;
+            auto index = std::abs(face.normal.x) > 0 ? face.normal.x * 0.5 + 0.5 : 0;
+            index += std::abs(face.normal.y) > 0 ? 2 + face.normal.y * 0.5 + 0.5 : 0;
+            index += std::abs(face.normal.z) > 0 ? 4 + face.normal.z * 0.5 + 0.5 : 0;
             m_faces_texture_data[i * 6 + index] = face.color;
         }
     }

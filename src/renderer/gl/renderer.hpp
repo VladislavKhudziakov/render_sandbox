@@ -40,6 +40,8 @@ namespace renderer::gl
 
         void update(float) override;
 
+        void clear() override;
+
     private:
         void draw(mesh_handler mesh_handler, shader_handler shader_handler, uint32_t instances_count = 1, uint32_t draw_id = 0);
         void set_gpu_state(const ::renderer::shader_state&);

@@ -8,6 +8,8 @@
 
 #include <filesystem>
 #include <iostream>
+#include <functional>
+#include <cstring>
 
 renderer::texture_descriptor misc::images_loader::load_2d_texture(const std::string& file)
 {

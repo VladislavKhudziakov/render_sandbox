@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <cassert>
 
 namespace misc
 {

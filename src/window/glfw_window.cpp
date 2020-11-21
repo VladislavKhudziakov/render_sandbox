@@ -63,6 +63,9 @@ void renderer::glfw_window::update()
 
 void renderer::glfw_window::destroy_window()
 {
+    if (m_renderer) {
+        m_renderer->clear();
+    }
     glfwDestroyWindow(m_window);
     glfwTerminate();
 }

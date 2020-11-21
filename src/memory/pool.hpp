@@ -2,8 +2,11 @@
 
 #pragma once
 
+#include <misc/debug.hpp>
+
 #include <vector>
 #include <deque>
+#include <algorithm>
 
 namespace memory
 {
@@ -51,7 +54,7 @@ namespace memory
         size_t create(Args&&... args) noexcept(std::is_nothrow_move_constructible_v<ObjectType>&& std::is_nothrow_constructible_v<ObjectType, Args...>)
         {
             if (m_free_objects.empty()) {
-                assert(m_size <= m_storage_size);
+                ASSERT(m_size <= m_storage_size);
 
                 if (m_size + 1 >= m_storage_size) {
                     reallocate(m_storage_size == 0 ? 10 : m_storage_size * 2);

@@ -5,6 +5,7 @@
 #include <scene/components/component_base.hpp>
 
 #include <vector>
+#include <string>
 
 namespace renderer::scene
 {

@@ -7,6 +7,9 @@
 
 #include <renderer/renderer.hpp>
 
+#include <functional>
+#include <memory>
+
 namespace renderer
 {
     struct mouse_position_event

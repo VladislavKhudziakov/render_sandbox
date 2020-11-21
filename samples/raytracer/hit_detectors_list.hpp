@@ -4,7 +4,9 @@
 #pragma once
 
 #include <hit_detector.hpp>
+
 #include <vector>
+#include <memory>
 
 
 namespace raytracer

@@ -246,5 +246,6 @@ namespace renderer
 
         virtual void encode_draw_command(draw_command) = 0;
         virtual void update(float) = 0;
+        virtual void clear() = 0;
     };
 } // namespace renderer

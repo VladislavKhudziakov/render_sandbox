@@ -6,6 +6,8 @@
 #include <misc/types_traits.hpp>
 #include <misc/debug.hpp>
 
+#include <memory>
+
 namespace memory
 {
     template<typename ObjectType>
@@ -150,6 +152,11 @@ namespace memory
         pool_view<ObjectType> view() const
         {
             return pool_view<ObjectType>{get_pool<ObjectType>()};
+        }
+
+        void clear()
+        {
+            m_pools_list.clear();
         }
 
     private:

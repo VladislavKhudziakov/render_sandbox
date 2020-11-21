@@ -4,6 +4,7 @@
 #include <renderer/renderer.hpp>
 
 #include <vector>
+#include <cstring>
 
 
 namespace
